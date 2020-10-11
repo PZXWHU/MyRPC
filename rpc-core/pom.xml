@@ -13,7 +13,11 @@
 
 
     <dependencies>
-
+        <dependency>
+            <groupId>com.pzx</groupId>
+            <artifactId>rpc-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 

@@ -11,7 +11,16 @@
     <artifactId>test-server</artifactId>
 
     <dependencies>
-
+        <dependency>
+            <groupId>com.pzx</groupId>
+            <artifactId>rpc-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pzx</groupId>
+            <artifactId>rpc-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 
