@@ -29,7 +29,7 @@ public class RpcClientProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         RpcRequest rpcRequest = RpcRequest.builder()
-                .interfaceName(method.getDeclaringClass().getName())
+                .interfaceName(method.getDeclaringClass().getCanonicalName())
                 .methodName(method.getName())
                 .parameters(args)
                 .paramTypes(method.getParameterTypes())

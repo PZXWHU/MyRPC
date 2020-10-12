@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 
+@Deprecated
 public class WorkThread implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkThread.class);
