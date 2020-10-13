@@ -6,7 +6,7 @@ import com.pzx.rpc.factory.SingletonFactory;
 import com.pzx.rpc.serde.RpcSerDe;
 import com.pzx.rpc.service.handler.ServiceRequestHandler;
 
-import com.pzx.rpc.service.register.ServiceRegistry;
+import com.pzx.rpc.service.provider.ServiceProvider;
 import com.pzx.rpc.transport.socket.codec.ProtocolSocketReader;
 import com.pzx.rpc.transport.socket.codec.ProtocolSocketWriter;
 import org.slf4j.Logger;
@@ -21,13 +21,13 @@ public class SocketRequestHandlerThread implements Runnable {
 
     private final Socket socket;
     private final ServiceRequestHandler serviceRequestHandler;
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
-    public SocketRequestHandlerThread(Socket socket, ServiceRegistry serviceRegistry, RpcSerDe rpcSerDe) {
+    public SocketRequestHandlerThread(Socket socket, ServiceProvider serviceProvider, RpcSerDe rpcSerDe) {
         this.socket = socket;
         this.serviceRequestHandler = SingletonFactory.getInstance(ServiceRequestHandler.class);
-        this.serviceRegistry = serviceRegistry;
+        this.serviceProvider = serviceProvider;
         this.rpcSerDe = rpcSerDe;
     }
 
@@ -36,7 +36,7 @@ public class SocketRequestHandlerThread implements Runnable {
         try (InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream()) {
             RpcRequest rpcRequest = (RpcRequest) ProtocolSocketReader.read(inputStream);
-            RpcResponse<Object> rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceRegistry);
+            RpcResponse<Object> rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceProvider);
             ProtocolSocketWriter.write(rpcResponse, outputStream, rpcSerDe);
             outputStream.flush();
             socket.close();

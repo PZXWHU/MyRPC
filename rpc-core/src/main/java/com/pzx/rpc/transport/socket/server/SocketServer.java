@@ -1,8 +1,7 @@
 package com.pzx.rpc.transport.socket.server;
 
 import com.pzx.rpc.serde.RpcSerDe;
-import com.pzx.rpc.service.handler.ServiceRequestHandler;
-import com.pzx.rpc.service.register.ServiceRegistry;
+import com.pzx.rpc.service.provider.ServiceProvider;
 import com.pzx.rpc.transport.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,18 +24,18 @@ public class SocketServer implements RpcServer {
     private static final int BLOCKING_QUEUE_CAPACITY = 100;
 
     private final ExecutorService threadPool;
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
-    public SocketServer(ServiceRegistry serviceRegistry) {
+    public SocketServer(ServiceProvider serviceProvider) {
 
-        this.serviceRegistry = serviceRegistry;
+        this.serviceProvider = serviceProvider;
         this.rpcSerDe = RpcSerDe.getByCode(DEFAULT_SERDE_CODE);
         this.threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY), Executors.defaultThreadFactory());
     }
 
-    public SocketServer(ServiceRegistry serviceRegistry, RpcSerDe rpcSerDe) {
-        this.serviceRegistry = serviceRegistry;
+    public SocketServer(ServiceProvider serviceProvider, RpcSerDe rpcSerDe) {
+        this.serviceProvider = serviceProvider;
         this.rpcSerDe = rpcSerDe;
         this.threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY), Executors.defaultThreadFactory());
     }
@@ -48,7 +47,7 @@ public class SocketServer implements RpcServer {
             Socket socket;
             while((socket = serverSocket.accept()) != null) {
                 logger.info("消费者连接: {}:{}", socket.getInetAddress(), socket.getPort());
-                threadPool.execute(new SocketRequestHandlerThread(socket, serviceRegistry, rpcSerDe));
+                threadPool.execute(new SocketRequestHandlerThread(socket, serviceProvider, rpcSerDe));
             }
             threadPool.shutdown();
         } catch (IOException e) {

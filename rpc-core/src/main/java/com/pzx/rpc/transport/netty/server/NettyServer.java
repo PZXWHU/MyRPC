@@ -1,7 +1,7 @@
 package com.pzx.rpc.transport.netty.server;
 
 import com.pzx.rpc.serde.RpcSerDe;
-import com.pzx.rpc.service.register.ServiceRegistry;
+import com.pzx.rpc.service.provider.ServiceProvider;
 import com.pzx.rpc.transport.RpcServer;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyDecoder;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyEncoder;
@@ -10,8 +10,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,16 +17,16 @@ public class NettyServer implements RpcServer {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
-    public NettyServer(ServiceRegistry serviceRegistry) {
-        this.serviceRegistry = serviceRegistry;
+    public NettyServer(ServiceProvider serviceProvider) {
+        this.serviceProvider = serviceProvider;
         this.rpcSerDe = RpcSerDe.getByCode(DEFAULT_SERDE_CODE);
     }
 
-    public NettyServer(ServiceRegistry serviceRegistry, RpcSerDe rpcSerDe) {
-        this.serviceRegistry = serviceRegistry;
+    public NettyServer(ServiceProvider serviceProvider, RpcSerDe rpcSerDe) {
+        this.serviceProvider = serviceProvider;
         this.rpcSerDe = rpcSerDe;
     }
 
@@ -50,7 +48,7 @@ public class NettyServer implements RpcServer {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new ProtocolNettyEncoder(rpcSerDe));
                             pipeline.addLast(new ProtocolNettyDecoder());
-                            pipeline.addLast(new RpcRequestInboundHandler(serviceRegistry));
+                            pipeline.addLast(new RpcRequestInboundHandler(serviceProvider));
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(port).sync();

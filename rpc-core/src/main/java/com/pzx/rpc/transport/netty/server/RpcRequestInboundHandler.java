@@ -4,7 +4,7 @@ import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.factory.SingletonFactory;
 import com.pzx.rpc.service.handler.ServiceRequestHandler;
-import com.pzx.rpc.service.register.ServiceRegistry;
+import com.pzx.rpc.service.provider.ServiceProvider;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,17 +16,17 @@ public class RpcRequestInboundHandler extends SimpleChannelInboundHandler<RpcReq
 
     private static final Logger logger = LoggerFactory.getLogger(RpcRequestInboundHandler.class);
     private final ServiceRequestHandler serviceRequestHandler;
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceProvider serviceProvider;
 
-    public RpcRequestInboundHandler(ServiceRegistry serviceRegistry) {
+    public RpcRequestInboundHandler(ServiceProvider serviceProvider) {
         this.serviceRequestHandler = SingletonFactory.getInstance(ServiceRequestHandler.class);
-        this.serviceRegistry = serviceRegistry;
+        this.serviceProvider = serviceProvider;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
         logger.info("服务器接收到请求: {}", rpcRequest);
-        RpcResponse rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceRegistry);
+        RpcResponse rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceProvider);
         ChannelFuture future = ctx.channel().writeAndFlush(rpcResponse);
         future.addListener(ChannelFutureListener.CLOSE);
     }

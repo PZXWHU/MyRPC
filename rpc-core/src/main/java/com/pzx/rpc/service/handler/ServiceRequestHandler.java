@@ -3,7 +3,7 @@ package com.pzx.rpc.service.handler;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.enumeration.ResponseCode;
-import com.pzx.rpc.service.register.ServiceRegistry;
+import com.pzx.rpc.service.provider.ServiceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +17,9 @@ public class ServiceRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceRequestHandler.class);
 
-    public RpcResponse<Object> handle(RpcRequest rpcRequest, ServiceRegistry serviceRegistry) {
+    public RpcResponse<Object> handle(RpcRequest rpcRequest, ServiceProvider serviceProvider) {
         String interfaceName = rpcRequest.getInterfaceName();
-        Object service = serviceRegistry.getService(interfaceName);
+        Object service = serviceProvider.getService(interfaceName);
         return invokeTargetMethod(rpcRequest, service);
     }
 

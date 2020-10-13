@@ -1,4 +1,4 @@
-package com.pzx.rpc.service.register;
+package com.pzx.rpc.service.provider;
 
 import com.pzx.rpc.enumeration.RpcError;
 import com.pzx.rpc.exception.RpcException;
@@ -10,14 +10,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MemoryServiceRegistry implements ServiceRegistry {
+public class MemoryServiceProvider implements ServiceProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(MemoryServiceRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemoryServiceProvider.class);
     private final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
-    private final Set<String> registeredServiceName = ConcurrentHashMap.newKeySet();
+    //private final Set<String> registeredServiceName = ConcurrentHashMap.newKeySet();
 
     @Override
-    public <T> void registerService(T service) {
+    public <T> void addService(T service, String serviceName) {
+        if (serviceMap.containsKey(serviceName)){
+            logger.info("add service provider：serviceName:{} \n" +
+                    "serviceImplClass: {}, serviceObject: {}", serviceName, service.getClass().getDeclaringClass(),service);
+        }else {
+            logger.info("update service provider：serviceName:{} \n" +
+                            "oldServiceImplClass: {}, OldServiceObject: {} \n" +
+                            "newServiceImplClass: {}, newServiceObject: {}",
+                    serviceName, serviceMap.get(serviceName).getClass().getDeclaringClass(),serviceMap.get(serviceName),
+                    service.getClass().getDeclaredClasses(), service);
+        }
+        serviceMap.put(serviceName,service);
+        /*
         String serviceName = service.getClass().getCanonicalName();
 
         //contains和add会有并发问题：某个线程在另一个线程add还未添加成功之前，判断contains==false，造成同一个服务类对象注册多次。
@@ -34,6 +46,7 @@ public class MemoryServiceRegistry implements ServiceRegistry {
             serviceMap.put(i.getCanonicalName(), service);
         }
         logger.info("服务接口: {} 注册服务实例: {}", interfaces, serviceName);
+         */
     }
 
     @Override
