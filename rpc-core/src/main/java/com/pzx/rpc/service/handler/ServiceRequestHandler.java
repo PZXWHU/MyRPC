@@ -1,27 +1,29 @@
-package com.pzx.rpc.handler;
+package com.pzx.rpc.service.handler;
 
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.enumeration.ResponseCode;
+import com.pzx.rpc.service.register.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class RequestHandler {
+/**
+ * 利用RpcRequest对应的Service实例，调用相应函数获得结果，并构造RpcResponse
+ */
+public class ServiceRequestHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceRequestHandler.class);
 
-    public RpcResponse<Object> handle(RpcRequest rpcRequest, Object service) {
+    public RpcResponse<Object> handle(RpcRequest rpcRequest, ServiceRegistry serviceRegistry) {
+        String interfaceName = rpcRequest.getInterfaceName();
+        Object service = serviceRegistry.getService(interfaceName);
         return invokeTargetMethod(rpcRequest, service);
     }
 
-    private RpcResponse<Object> invokeTargetMethod(RpcRequest rpcRequest, Object service){
-
-        if (service == null)
-            return RpcResponse.fail(ResponseCode.CLASS_NOT_FOUND);
-
+    private RpcResponse invokeTargetMethod(RpcRequest rpcRequest, Object service){
         try {
             Method method = service.getClass().getMethod(rpcRequest.getMethodName(), rpcRequest.getParamTypes());
             Object result = method.invoke(service, rpcRequest.getParameters());

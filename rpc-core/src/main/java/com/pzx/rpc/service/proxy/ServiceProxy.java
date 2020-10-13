@@ -1,8 +1,11 @@
-package com.pzx.rpc.transport;
+package com.pzx.rpc.service.proxy;
 
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
+import com.pzx.rpc.transport.RpcClient;
+import com.pzx.rpc.transport.socket.client.SocketClient;
 
+import javax.xml.ws.Response;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -11,14 +14,13 @@ import java.lang.reflect.Proxy;
  * 客户端代理类，代理服务接口。
  * 服务接口的实现类只在rpc服务端存在，所以客户端使用动态代理服务接口，客户端调用服务接口则rpc调用服务端的服务接口实现对象的方法
  */
-public class RpcClientProxy implements InvocationHandler {
+public class ServiceProxy implements InvocationHandler {
 
-    private String host;
-    private int port;
 
-    public RpcClientProxy(String host, int port) {
-        this.host = host;
-        this.port = port;
+    private final RpcClient rpcClient;
+
+    public ServiceProxy(RpcClient rpcClient) {
+        this.rpcClient = rpcClient;
     }
 
     @SuppressWarnings("unchecked")
@@ -34,8 +36,8 @@ public class RpcClientProxy implements InvocationHandler {
                 .parameters(args)
                 .paramTypes(method.getParameterTypes())
                 .build();
-        RpcClient rpcClient = new RpcClient();
-        return ((RpcResponse) rpcClient.sendRequest(rpcRequest, host, port)).getData();
+        RpcResponse rpcResponse = rpcClient.sendRequest(rpcRequest);
+        return rpcResponse == null ? null : rpcResponse.getData();
 
     }
 

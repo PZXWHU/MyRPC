@@ -1,7 +1,8 @@
-package com.pzx.rpc.register;
+package com.pzx.rpc.service.register;
 
 import com.pzx.rpc.enumeration.RpcError;
 import com.pzx.rpc.exception.RpcException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,9 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultServiceRegistry implements ServiceRegistry {
+public class MemoryServiceRegistry implements ServiceRegistry {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemoryServiceRegistry.class);
     private final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
     private final Set<String> registeredServiceName = ConcurrentHashMap.newKeySet();
 

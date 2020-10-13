@@ -1,4 +1,4 @@
-package com.pzx.rpc.register;
+package com.pzx.rpc.service.register;
 
 /**
  * 服务注册接口
