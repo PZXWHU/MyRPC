@@ -1,10 +1,12 @@
 package com.pzx.rpc.test;
 
+import com.pzx.rpc.annotation.Service;
 import com.pzx.rpc.api.HelloObject;
 import com.pzx.rpc.api.HelloService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Service
 public class HelloServiceImpl implements HelloService {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloServiceImpl.class);

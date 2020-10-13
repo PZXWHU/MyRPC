@@ -25,10 +25,7 @@ public class NettyClient implements RpcClient {
     private final RpcSerDe rpcSerDe;
 
     public NettyClient(String host, int port) {
-        this.host = host;
-        this.port = port;
-        this.rpcSerDe = RpcSerDe.getByCode(DEFAULT_SERDE_CODE);
-        this.bootstrap = createBootstrap(rpcSerDe);
+        this(host, port, RpcSerDe.getByCode(DEFAULT_SERDE_CODE));
     }
 
     public NettyClient(String host, int port, RpcSerDe rpcSerDe) {

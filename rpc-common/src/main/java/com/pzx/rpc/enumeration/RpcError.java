@@ -7,6 +7,8 @@ import lombok.Getter;
 @Getter
 public enum  RpcError {
 
+    UNKNOWN_ERROR("未知错误"),
+    SERVICE_SCAN_PACKAGE_NOT_FOUND("启动类缺少 @ServiceScan 注解"),
     UNKNOWN_SERDE("不识别的的序列化器/反序列化器"),
     UNKNOWN_PACKAGE_TYPE("不识别的数据包"),
     UNKNOWN_PROTOCOL("不识别的通信协议"),

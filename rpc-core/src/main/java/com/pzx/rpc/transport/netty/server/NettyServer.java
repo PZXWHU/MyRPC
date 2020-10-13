@@ -1,7 +1,9 @@
 package com.pzx.rpc.transport.netty.server;
 
 import com.pzx.rpc.serde.RpcSerDe;
+import com.pzx.rpc.service.provider.MemoryServiceProvider;
 import com.pzx.rpc.service.provider.ServiceProvider;
+import com.pzx.rpc.transport.AbstractRpcServer;
 import com.pzx.rpc.transport.RpcServer;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyDecoder;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyEncoder;
@@ -13,23 +15,36 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NettyServer implements RpcServer {
+public class NettyServer extends AbstractRpcServer {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
     private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
-    public NettyServer(ServiceProvider serviceProvider) {
-        this.serviceProvider = serviceProvider;
-        this.rpcSerDe = RpcSerDe.getByCode(DEFAULT_SERDE_CODE);
+    public NettyServer() {
+        this(RpcSerDe.getByCode(DEFAULT_SERDE_CODE), true);
     }
 
-    public NettyServer(ServiceProvider serviceProvider, RpcSerDe rpcSerDe) {
-        this.serviceProvider = serviceProvider;
+    public NettyServer(RpcSerDe rpcSerDe){
+        this(rpcSerDe, true);
+    }
+
+    public NettyServer(boolean autoScan){
+        this(RpcSerDe.getByCode(DEFAULT_SERDE_CODE), autoScan);
+    }
+
+    public NettyServer(RpcSerDe rpcSerDe, boolean autoScan) {
+        this.serviceProvider = new MemoryServiceProvider();
         this.rpcSerDe = rpcSerDe;
+        if (autoScan)
+            scanAndPublishServices();
     }
 
+    @Override
+    public <T> void publishService(Object service, String serviceName) {
+        this.serviceProvider.addService(service, serviceName);
+    }
 
     @Override
     public void start(int port) {

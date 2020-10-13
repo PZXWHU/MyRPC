@@ -1,6 +1,7 @@
-.idea/
 
+/.idea/
+/MyRPC.iml
 
+target/
 
-**/*.iml
 
