@@ -18,15 +18,15 @@ public class MemoryServiceProvider implements ServiceProvider {
 
     @Override
     public <T> void addService(T service, String serviceName) {
-        if (serviceMap.containsKey(serviceName)){
-            logger.info("add service provider：serviceName:{} \n" +
-                    "serviceImplClass: {}, serviceObject: {}", serviceName, service.getClass().getDeclaringClass(),service);
+        if (!serviceMap.containsKey(serviceName)){
+            logger.info("add service provider：serviceName:{}, " +
+                    "serviceImplClass: {}, serviceObject: {}", serviceName, service.getClass().getCanonicalName(),service.toString());
         }else {
-            logger.info("update service provider：serviceName:{} \n" +
-                            "oldServiceImplClass: {}, OldServiceObject: {} \n" +
+            logger.info("update service provider：serviceName:{}, " +
+                            "oldServiceImplClass: {}, OldServiceObject: {}, " +
                             "newServiceImplClass: {}, newServiceObject: {}",
-                    serviceName, serviceMap.get(serviceName).getClass().getDeclaringClass(),serviceMap.get(serviceName),
-                    service.getClass().getDeclaredClasses(), service);
+                    serviceName, serviceMap.get(serviceName).getClass().getCanonicalName(),serviceMap.get(serviceName).toString(),
+                    service.getClass().getCanonicalName(), service.toString());
         }
         serviceMap.put(serviceName,service);
         /*
