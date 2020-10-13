@@ -27,6 +27,7 @@ public class ProtocolCoDec1 implements ProtocolCoDec {
     private static final byte PROTOCOL_VERSION = 1;
     private static final int PACKAGE_HEAD_LENGTH = 11;
 
+    private ProtocolCoDec1(){}
 
     @Override
     public  byte[] encode(Object msg, RpcSerDe serializer) {

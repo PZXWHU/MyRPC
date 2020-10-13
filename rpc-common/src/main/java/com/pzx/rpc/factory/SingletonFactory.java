@@ -1,5 +1,7 @@
 package com.pzx.rpc.factory;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,9 +20,11 @@ public class SingletonFactory {
             synchronized (clazz) {
                 if((object = objectMap.get(clazz)) == null) {
                     try {
-                        object = clazz.newInstance();
+                        Constructor constructor = clazz.getDeclaredConstructor();
+                        constructor.setAccessible(true);
+                        object = constructor.newInstance();
                         objectMap.put(clazz, object);
-                    } catch (IllegalAccessException | InstantiationException e) {
+                    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e.getMessage(), e);
                     }
                 }

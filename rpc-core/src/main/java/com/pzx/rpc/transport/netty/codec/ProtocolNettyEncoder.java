@@ -22,20 +22,6 @@ public class ProtocolNettyEncoder extends MessageToByteEncoder {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, Object msg, ByteBuf out) throws Exception {
 
-        /*
-        out.writeInt(ProtocolConstants.MAGIC_NUMBER);
-        if(msg instanceof RpcRequest) {
-            out.writeByte(ProtocolConstants.REQUEST_TYPE);
-        } else {
-            out.writeByte(ProtocolConstants.RESPONSE_TYPE);
-        }
-        out.writeByte(serializer.getCode());
-        byte[] bytes = serializer.serialize(msg);
-        out.writeInt(bytes.length);
-        out.writeBytes(bytes);
-
-         */
-
         byte protocolVersion = ProtocolConstants.NEWEST_VERSION;
         ProtocolCoDec protocolCoDec = ProtocolCoDec.getByVersion(protocolVersion);
         byte[] protocolBytes = protocolCoDec.encode(msg, serializer);

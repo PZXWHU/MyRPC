@@ -17,7 +17,10 @@ public class JsonSerDe implements RpcSerDe {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonSerDe.class);
 
+    //ObjectMapper是线程安全的，可以使用单例
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    private JsonSerDe(){}
 
     @Override
     public byte[] serialize(Object obj) {

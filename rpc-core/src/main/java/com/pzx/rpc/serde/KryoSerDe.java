@@ -18,6 +18,7 @@ public class KryoSerDe implements RpcSerDe {
 
     private static final Logger logger = LoggerFactory.getLogger(KryoSerDe.class);
 
+    //Kryo可能存在线程安全问题，文档上是推荐放在 ThreadLocal 里，一个线程一个 Kryo。
     private static final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
         Kryo kryo = new Kryo();
         kryo.register(RpcResponse.class);
@@ -26,6 +27,8 @@ public class KryoSerDe implements RpcSerDe {
         kryo.setRegistrationRequired(false);
         return kryo;
     });
+
+    private KryoSerDe(){}
 
     @Override
     public byte[] serialize(Object obj) {

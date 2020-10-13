@@ -24,32 +24,7 @@ public class ProtocolNettyDecoder extends ReplayingDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        /*
-        int magic = in.readInt();
-        if(magic != ProtocolConstants.MAGIC_NUMBER) {
-            logger.error("不识别的协议包: {}", magic);
-            throw new RpcException(RpcError.UNKNOWN_PROTOCOL);
-        }
-        byte packageCode = in.readByte();
-        Class<?> packageClass;
-        if(packageCode == ProtocolConstants.REQUEST_TYPE) {
-            packageClass = RpcRequest.class;
-        } else if(packageCode == ProtocolConstants.RESPONSE_TYPE) {
-            packageClass = RpcResponse.class;
-        } else {
-            logger.error("不识别的数据包: {}", packageCode);
-            throw new RpcException(RpcError.UNKNOWN_PACKAGE_TYPE);
-        }
-        int serializerCode = in.readByte();
-        RpcSerDe deserializer = RpcSerDe.getByCode(serializerCode);
 
-        int length = in.readInt();
-        byte[] bytes = new byte[length];
-        in.readBytes(bytes);
-        Object obj = deserializer.deserialize(bytes, packageClass);
-        list.add(obj);
-
-         */
 
         //获得数据包长度以及协议版本
         byteBuf.markReaderIndex();
