@@ -32,7 +32,7 @@ public class NettyClient implements RpcClient {
         this.host = host;
         this.port = port;
         this.rpcSerDe = rpcSerDe;
-        this.bootstrap = createBootstrap(rpcSerDe);
+        this.bootstrap = createBootstrap(this.rpcSerDe);
     }
 
     private Bootstrap createBootstrap(RpcSerDe rpcSerDe){

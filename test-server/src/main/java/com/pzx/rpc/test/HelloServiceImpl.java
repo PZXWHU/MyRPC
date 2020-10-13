@@ -6,6 +6,9 @@ import com.pzx.rpc.api.HelloService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 服务实现类，必须满足线程安全！
+ */
 @Service
 public class HelloServiceImpl implements HelloService {
 
