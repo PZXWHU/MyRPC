@@ -39,7 +39,7 @@ public class TestNettyServer {
 
 当然也可以开启自动扫描后，再进行手动发布服务。
 
-- client使用
+##client使用
     1. 创建RpcClient，输入Server的ip地址和端口
     2. 利用服务代理类，获得指定服务接口的代理对象
     3. 调用代理对象的方法，获得Rpc调用结果
