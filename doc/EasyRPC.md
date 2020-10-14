@@ -1,6 +1,9 @@
 ## EasyRPC
 EasyRPC是不使用注册中心的RPC框架，即只支持client-server的调用模式。
 
+![EasyRPC](../images/EasyRpc.png)
+
+
 ## Server使用
 - 自动扫描和发布服务(默认情况)
     1. 在服务实现类上标注注解@Service
