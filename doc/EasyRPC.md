@@ -58,3 +58,8 @@ public class TestNettyClient {
 }
 ```
  
+参考：
+https://blog.csdn.net/qq_40856284/article/details/106972591
+https://blog.guoziyang.top/archives/60/
+https://github.com/CN-GuoZiyang/My-RPC-Framework
+https://github.com/Snailclimb/guide-rpc-framework
