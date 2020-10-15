@@ -8,6 +8,8 @@ import com.pzx.rpc.transport.netty.client.NettyClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+
 public class TestNettyClient {
 
     private static final Logger logger = LoggerFactory.getLogger(TestNettyClient.class);
@@ -15,7 +17,7 @@ public class TestNettyClient {
     public static void main(String[] args) {
         long t = System.currentTimeMillis();
 
-        RpcClient rpcClient = new NettyClient("127.0.0.1",9999);
+        RpcClient rpcClient = new NettyClient(new InetSocketAddress("127.0.0.1",9999));
         ServiceProxy serviceProxy = new ServiceProxy(rpcClient);
         HelloService helloService = serviceProxy.getProxy(HelloService.class);
 
@@ -25,13 +27,14 @@ public class TestNettyClient {
 
         t = System.currentTimeMillis();
 
-        rpcClient = new NettyClient("127.0.0.1",9999);
+        rpcClient = new NettyClient(new InetSocketAddress("127.0.0.1",9999));
         serviceProxy = new ServiceProxy(rpcClient);
         helloService = serviceProxy.getProxy(HelloService.class);
 
         res = helloService.hello(new HelloObject(12, "This is a message"));
         System.out.println(res);
         logger.info("RPC调用耗时：" + (System.currentTimeMillis() - t));
+
 
     }
 }

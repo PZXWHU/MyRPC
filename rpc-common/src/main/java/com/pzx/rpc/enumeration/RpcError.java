@@ -7,6 +7,8 @@ import lombok.Getter;
 @Getter
 public enum  RpcError {
 
+    REGISTER_SERVICE_FAILED("注册服务失败"),
+    FAILED_TO_CONNECT_TO_SERVICE_REGISTRY("无法连接到注册中心"),
     UNKNOWN_ERROR("未知错误"),
     SERVICE_SCAN_PACKAGE_NOT_FOUND("启动类缺少 @ServiceScan 注解"),
     UNKNOWN_SERDE("不识别的的序列化器/反序列化器"),

@@ -7,6 +7,8 @@ import com.pzx.rpc.transport.socket.client.SocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+
 
 public class TestSocketClient {
 
@@ -14,7 +16,7 @@ public class TestSocketClient {
 
     public static void main(String[] args) {
         long t = System.currentTimeMillis();
-        SocketClient socketClient = new SocketClient("127.0.0.1", 9000);
+        SocketClient socketClient = new SocketClient(new InetSocketAddress("127.0.0.1", 9000));
         //生成代理工具类实例
         ServiceProxy proxy = new ServiceProxy(socketClient);
         //利用代理工具实例代理服务接口

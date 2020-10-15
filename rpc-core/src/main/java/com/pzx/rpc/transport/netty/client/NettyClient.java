@@ -3,9 +3,12 @@ package com.pzx.rpc.transport.netty.client;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.serde.RpcSerDe;
+import com.pzx.rpc.service.provider.ServiceProvider;
+import com.pzx.rpc.service.registry.ServiceRegistry;
 import com.pzx.rpc.transport.RpcClient;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyDecoder;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyEncoder;
+import com.pzx.rpc.transport.netty.server.NettyServer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -15,23 +18,38 @@ import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 public class NettyClient implements RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-    private final String host;
-    private final int port;
+    private final InetSocketAddress inetSocketAddress;
     private final Bootstrap bootstrap;
     private final RpcSerDe rpcSerDe;
+    private final ServiceRegistry serviceRegistry;
 
-    public NettyClient(String host, int port) {
-        this(host, port, RpcSerDe.getByCode(DEFAULT_SERDE_CODE));
+    public NettyClient(InetSocketAddress inetSocketAddress) {
+        this(inetSocketAddress, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), null);
     }
 
-    public NettyClient(String host, int port, RpcSerDe rpcSerDe) {
-        this.host = host;
-        this.port = port;
+    public NettyClient(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe) {
+        this(inetSocketAddress, rpcSerDe, null);
+    }
+
+    public NettyClient(ServiceRegistry serviceRegistry) {
+        this(null, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), serviceRegistry);
+    }
+
+    public NettyClient( RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
+        this(null, rpcSerDe, serviceRegistry);
+    }
+
+    private NettyClient(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
+        this.inetSocketAddress = inetSocketAddress;
         this.rpcSerDe = rpcSerDe;
+        this.serviceRegistry = serviceRegistry;
         this.bootstrap = createBootstrap(this.rpcSerDe);
     }
 
@@ -59,11 +77,12 @@ public class NettyClient implements RpcClient {
     public RpcResponse sendRequest(RpcRequest rpcRequest) {
 
         RpcResponse rpcResponse = null;
+        SocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : inetSocketAddress;
         try {
             long t1 = System.currentTimeMillis();
-            ChannelFuture future = bootstrap.connect(host, port).sync();
+            ChannelFuture future = bootstrap.connect(requestAddress).sync();
             logger.info("连接耗时:" + (System.currentTimeMillis() - t1));
-            logger.info("客户端连接到服务器 {}:{}", host, port);
+            logger.info("客户端连接到服务器 {}:{}", inetSocketAddress.getAddress(), inetSocketAddress.getPort());
             Channel channel = future.channel();
             if(channel != null) {
                 channel.writeAndFlush(rpcRequest).addListener(future1 -> {

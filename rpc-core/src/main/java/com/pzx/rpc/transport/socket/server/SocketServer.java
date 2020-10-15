@@ -3,12 +3,14 @@ package com.pzx.rpc.transport.socket.server;
 import com.pzx.rpc.serde.RpcSerDe;
 import com.pzx.rpc.service.provider.MemoryServiceProvider;
 import com.pzx.rpc.service.provider.ServiceProvider;
+import com.pzx.rpc.service.registry.ServiceRegistry;
 import com.pzx.rpc.transport.AbstractRpcServer;
 import com.pzx.rpc.transport.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
@@ -26,36 +28,68 @@ public class SocketServer extends AbstractRpcServer {
     private static final int BLOCKING_QUEUE_CAPACITY = 100;
 
     private final ExecutorService threadPool;
+    private final InetSocketAddress inetSocketAddress;
+    private ServiceRegistry serviceRegistry;
     private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
-    public SocketServer() {
-        this(RpcSerDe.getByCode(DEFAULT_SERDE_CODE), true);
-    }
-
-    public SocketServer(RpcSerDe rpcSerDe) {
-        this(rpcSerDe, true);
-    }
-
-    public SocketServer(boolean autoScan) {
-        this(RpcSerDe.getByCode(DEFAULT_SERDE_CODE), autoScan);
-    }
-
-    public SocketServer(RpcSerDe rpcSerDe, boolean autoScan) {
-        this.serviceProvider = new MemoryServiceProvider();
-        this.rpcSerDe = rpcSerDe;
+    private SocketServer(Builder builder){
         this.threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY), Executors.defaultThreadFactory());
-        scanAndPublishServices();
+        this.inetSocketAddress = builder.inetSocketAddress;
+        this.serviceRegistry = builder.serviceRegistry;
+        this.serviceProvider = builder.serviceProvider == null ? new MemoryServiceProvider() : builder.serviceProvider;
+        this.rpcSerDe = builder.rpcSerDe == null ? RpcSerDe.getByCode(DEFAULT_SERDE_CODE) : builder.rpcSerDe;
+        if (builder.autoScanService)
+            scanAndPublishServices();
+    }
+
+    public static class Builder{
+        private InetSocketAddress inetSocketAddress;
+        private ServiceRegistry serviceRegistry;
+        private ServiceProvider serviceProvider;
+        private RpcSerDe rpcSerDe;
+        private boolean autoScanService = true;
+
+        public Builder(InetSocketAddress inetSocketAddress) {
+            this.inetSocketAddress = inetSocketAddress;
+        }
+
+        public Builder serviceRegistry(ServiceRegistry serviceRegistry){
+            this.serviceRegistry = serviceRegistry;
+            return this;
+        }
+
+        public Builder serviceProvider(ServiceProvider serviceProvider){
+            this.serviceProvider = serviceProvider;
+            return this;
+        }
+
+        public Builder rpcSerDe(RpcSerDe rpcSerDe){
+            this.rpcSerDe = rpcSerDe;
+            return this;
+        }
+
+        public Builder autoScanService(boolean autoScanService){
+            this.autoScanService = autoScanService;
+            return this;
+        }
+
+        public SocketServer build(){
+            return new SocketServer(this);
+        }
+
     }
 
     @Override
     public <T> void publishService(Object service, String serviceName) {
         serviceProvider.addService(service, serviceName);
+        if (serviceRegistry != null)
+            serviceRegistry.registerService(serviceName, inetSocketAddress);
     }
 
     @Override
-    public void start(int port){
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+    public void start(){
+        try (ServerSocket serverSocket = new ServerSocket(inetSocketAddress.getPort())) {
 
             Socket socket;
             while((socket = serverSocket.accept()) != null) {
