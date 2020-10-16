@@ -6,5 +6,9 @@ public interface ServiceRegistry {
 
     void registerService(String serviceName, InetSocketAddress inetSocketAddress);
 
+    void deregisterService(String serviceName, InetSocketAddress inetSocketAddress);
+
     InetSocketAddress lookupService(String serviceName);
+
+    void clearRegisteredService();
 }

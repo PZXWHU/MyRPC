@@ -24,6 +24,11 @@ public class TestNettyServer {
                 .build();
 
         server.start();
+
+
+
+
+
     }
 
 }

@@ -32,6 +32,7 @@ public class SocketServer extends AbstractRpcServer {
     private ServiceRegistry serviceRegistry;
     private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
+    private final boolean autoScanService;
 
     private SocketServer(Builder builder){
         this.threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY), Executors.defaultThreadFactory());
@@ -39,8 +40,31 @@ public class SocketServer extends AbstractRpcServer {
         this.serviceRegistry = builder.serviceRegistry;
         this.serviceProvider = builder.serviceProvider == null ? new MemoryServiceProvider() : builder.serviceProvider;
         this.rpcSerDe = builder.rpcSerDe == null ? RpcSerDe.getByCode(DEFAULT_SERDE_CODE) : builder.rpcSerDe;
-        if (builder.autoScanService)
+        this.autoScanService = builder.autoScanService;
+    }
+
+    @Override
+    public <T> void publishService(Object service, String serviceName) {
+        serviceProvider.addService(service, serviceName);
+        if (serviceRegistry != null)
+            serviceRegistry.registerService(serviceName, serverAddress);
+    }
+
+    @Override
+    public void start(){
+        if (this.autoScanService)
             scanAndPublishServices();
+
+        try (ServerSocket serverSocket = new ServerSocket(serverAddress.getPort())) {
+            Socket socket;
+            while((socket = serverSocket.accept()) != null) {
+                logger.info("消费者连接: {}:{}", socket.getInetAddress(), socket.getPort());
+                threadPool.execute(new SocketRequestHandlerThread(socket, serviceProvider, rpcSerDe));
+            }
+            threadPool.shutdown();
+        } catch (IOException e) {
+            logger.error("服务器启动时有错误发生:", e);
+        }
     }
 
     public static class Builder{
@@ -79,28 +103,4 @@ public class SocketServer extends AbstractRpcServer {
         }
 
     }
-
-    @Override
-    public <T> void publishService(Object service, String serviceName) {
-        serviceProvider.addService(service, serviceName);
-        if (serviceRegistry != null)
-            serviceRegistry.registerService(serviceName, serverAddress);
-    }
-
-    @Override
-    public void start(){
-        try (ServerSocket serverSocket = new ServerSocket(serverAddress.getPort())) {
-
-            Socket socket;
-            while((socket = serverSocket.accept()) != null) {
-                logger.info("消费者连接: {}:{}", socket.getInetAddress(), socket.getPort());
-                threadPool.execute(new SocketRequestHandlerThread(socket, serviceProvider, rpcSerDe));
-            }
-            threadPool.shutdown();
-        } catch (IOException e) {
-            logger.error("服务器启动时有错误发生:", e);
-        }
-    }
-
-
 }
