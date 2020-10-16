@@ -18,16 +18,15 @@ public class TestSocketClient {
 
     public static void main(String[] args) {
         long t = System.currentTimeMillis();
+
         ServiceRegistry serviceRegistry = new NacosServiceRegistry(new InetSocketAddress("192.168.99.100", 8848));
         SocketClient socketClient = new SocketClient(serviceRegistry);
-        //生成代理工具类实例
-        ServiceProxy proxy = new ServiceProxy(socketClient);
-        //利用代理工具实例代理服务接口
-        HelloService helloService = proxy.getProxy(HelloService.class);
-
+        ServiceProxy proxy = new ServiceProxy(socketClient);//生成代理工具类实例
+        HelloService helloService = proxy.getProxy(HelloService.class);//利用代理工具实例代理服务接口
         HelloObject object = new HelloObject(12, "This is a message");
         String res = helloService.hello(object);
         System.out.println(res);
+
         logger.info("RPC调用耗时：" + (System.currentTimeMillis() - t));
 
     }

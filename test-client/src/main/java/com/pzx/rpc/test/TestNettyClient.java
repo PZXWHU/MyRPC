@@ -23,9 +23,9 @@ public class TestNettyClient {
         RpcClient rpcClient = new NettyClient(serviceRegistry);
         ServiceProxy serviceProxy = new ServiceProxy(rpcClient);
         HelloService helloService = serviceProxy.getProxy(HelloService.class);
-
         String res = helloService.hello(new HelloObject(12, "This is a message"));
         System.out.println(res);
+
         logger.info("RPC调用耗时：" + (System.currentTimeMillis() - t));
 
 
