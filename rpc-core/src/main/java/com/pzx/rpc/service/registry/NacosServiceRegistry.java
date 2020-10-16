@@ -6,6 +6,8 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.pzx.rpc.enumeration.RpcError;
 import com.pzx.rpc.exception.RpcException;
+import com.pzx.rpc.service.balancer.LoadBalancer;
+import com.pzx.rpc.service.balancer.RandomBalancer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.security.jca.GetInstance;
@@ -23,12 +25,18 @@ public class NacosServiceRegistry implements ServiceRegistry {
     //private final InetSocketAddress registryCenterAddress;
     private final NamingService namingService;
     private final Map<String, InetSocketAddress> registedService;
+    private final LoadBalancer loadBalancer;
 
     public NacosServiceRegistry(InetSocketAddress registryCenterAddress){
+        this(registryCenterAddress, new RandomBalancer());
+    }
+
+    public NacosServiceRegistry(InetSocketAddress registryCenterAddress, LoadBalancer loadBalancer){
         //this.registryCenterAddress = registryCenterAddress;
+        this.loadBalancer = loadBalancer;
         String address = registryCenterAddress.getAddress().getHostAddress() + ":" + registryCenterAddress.getPort();
         try {
-            namingService = NamingFactory.createNamingService(address);
+            this.namingService = NamingFactory.createNamingService(address);
         } catch (NacosException e) {
             logger.error("连接到Nacos时有错误发生: ", e);
             throw new RpcException(RpcError.FAILED_TO_CONNECT_TO_SERVICE_REGISTRY);
@@ -67,6 +75,7 @@ public class NacosServiceRegistry implements ServiceRegistry {
         try {
             List<Instance> instances = namingService.getAllInstances(serviceName);
             Instance instance = instances.get(0);
+
             return new InetSocketAddress(instance.getIp(), instance.getPort());
         } catch (NacosException e) {
             logger.error("获取服务时有错误发生:", e);
