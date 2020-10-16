@@ -23,16 +23,16 @@ public class SocketClient implements RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(SocketClient.class);
 
-    private final InetSocketAddress inetSocketAddress;
+    private final InetSocketAddress serverAddress;
     private final RpcSerDe rpcSerDe;
     private final ServiceRegistry serviceRegistry;
 
-    public SocketClient(InetSocketAddress inetSocketAddress) {
-        this(inetSocketAddress, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), null);
+    public SocketClient(InetSocketAddress serverAddress) {
+        this(serverAddress, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), null);
     }
 
-    public SocketClient(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe) {
-        this(inetSocketAddress, rpcSerDe, null);
+    public SocketClient(InetSocketAddress serverAddress, RpcSerDe rpcSerDe) {
+        this(serverAddress, rpcSerDe, null);
     }
 
     public SocketClient(ServiceRegistry serviceRegistry){
@@ -43,8 +43,8 @@ public class SocketClient implements RpcClient {
         this(null, rpcSerDe, serviceRegistry);
     }
 
-    private SocketClient(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
-        this.inetSocketAddress = inetSocketAddress;
+    private SocketClient(InetSocketAddress serverAddress, RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
+        this.serverAddress = serverAddress;
         this.rpcSerDe = rpcSerDe;
         this.serviceRegistry = serviceRegistry;
     }
@@ -54,7 +54,7 @@ public class SocketClient implements RpcClient {
     public RpcResponse sendRequest(RpcRequest rpcRequest) {
         RpcResponse rpcResponse = null;
         long t = System.currentTimeMillis();
-        InetSocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : inetSocketAddress;
+        InetSocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : serverAddress;
         try (Socket socket = new Socket()) {
             socket.connect(requestAddress);
             logger.info("连接耗时：" + (System.currentTimeMillis() - t));

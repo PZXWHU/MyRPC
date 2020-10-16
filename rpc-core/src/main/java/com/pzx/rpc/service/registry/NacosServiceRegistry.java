@@ -17,13 +17,14 @@ public class NacosServiceRegistry implements ServiceRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(NacosServiceRegistry.class);
 
-    private final String serverAddress;
+    private final InetSocketAddress registryCenterAddress;
     private final NamingService namingService;
 
-    public NacosServiceRegistry(String ip, int port){
-        this.serverAddress = ip + ":" + port;
+    public NacosServiceRegistry(InetSocketAddress registryCenterAddress){
+        this.registryCenterAddress = registryCenterAddress;
+        String address = registryCenterAddress.getAddress().getHostAddress() + ":" + registryCenterAddress.getPort();
         try {
-            namingService = NamingFactory.createNamingService(serverAddress);
+            namingService = NamingFactory.createNamingService(address);
         } catch (NacosException e) {
             logger.error("连接到Nacos时有错误发生: ", e);
             throw new RpcException(RpcError.FAILED_TO_CONNECT_TO_SERVICE_REGISTRY);

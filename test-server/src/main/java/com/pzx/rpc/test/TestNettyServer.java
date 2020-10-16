@@ -6,6 +6,8 @@ import com.pzx.rpc.enumeration.SerDeCode;
 import com.pzx.rpc.serde.RpcSerDe;
 import com.pzx.rpc.service.provider.MemoryServiceProvider;
 import com.pzx.rpc.service.provider.ServiceProvider;
+import com.pzx.rpc.service.registry.NacosServiceRegistry;
+import com.pzx.rpc.service.registry.ServiceRegistry;
 import com.pzx.rpc.transport.netty.server.NettyServer;
 
 import java.net.InetSocketAddress;
@@ -16,7 +18,9 @@ public class TestNettyServer {
     public static void main(String[] args) {
 
 
+        ServiceRegistry serviceRegistry = new NacosServiceRegistry(new InetSocketAddress("192.168.99.100", 8848));
         NettyServer server = new NettyServer.Builder(new InetSocketAddress("127.0.0.1",9999))
+                .serviceRegistry(serviceRegistry)
                 .build();
 
         server.start();

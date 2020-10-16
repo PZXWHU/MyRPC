@@ -28,14 +28,14 @@ public class SocketServer extends AbstractRpcServer {
     private static final int BLOCKING_QUEUE_CAPACITY = 100;
 
     private final ExecutorService threadPool;
-    private final InetSocketAddress inetSocketAddress;
+    private final InetSocketAddress serverAddress;
     private ServiceRegistry serviceRegistry;
     private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
     private SocketServer(Builder builder){
         this.threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY), Executors.defaultThreadFactory());
-        this.inetSocketAddress = builder.inetSocketAddress;
+        this.serverAddress = builder.serverAddress;
         this.serviceRegistry = builder.serviceRegistry;
         this.serviceProvider = builder.serviceProvider == null ? new MemoryServiceProvider() : builder.serviceProvider;
         this.rpcSerDe = builder.rpcSerDe == null ? RpcSerDe.getByCode(DEFAULT_SERDE_CODE) : builder.rpcSerDe;
@@ -44,14 +44,14 @@ public class SocketServer extends AbstractRpcServer {
     }
 
     public static class Builder{
-        private InetSocketAddress inetSocketAddress;
+        private InetSocketAddress serverAddress;
         private ServiceRegistry serviceRegistry;
         private ServiceProvider serviceProvider;
         private RpcSerDe rpcSerDe;
         private boolean autoScanService = true;
 
-        public Builder(InetSocketAddress inetSocketAddress) {
-            this.inetSocketAddress = inetSocketAddress;
+        public Builder(InetSocketAddress serverAddress) {
+            this.serverAddress = serverAddress;
         }
 
         public Builder serviceRegistry(ServiceRegistry serviceRegistry){
@@ -84,12 +84,12 @@ public class SocketServer extends AbstractRpcServer {
     public <T> void publishService(Object service, String serviceName) {
         serviceProvider.addService(service, serviceName);
         if (serviceRegistry != null)
-            serviceRegistry.registerService(serviceName, inetSocketAddress);
+            serviceRegistry.registerService(serviceName, serverAddress);
     }
 
     @Override
     public void start(){
-        try (ServerSocket serverSocket = new ServerSocket(inetSocketAddress.getPort())) {
+        try (ServerSocket serverSocket = new ServerSocket(serverAddress.getPort())) {
 
             Socket socket;
             while((socket = serverSocket.accept()) != null) {

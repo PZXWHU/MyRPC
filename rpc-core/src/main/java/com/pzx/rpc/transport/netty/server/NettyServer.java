@@ -25,14 +25,14 @@ public class NettyServer extends AbstractRpcServer {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
-    private final InetSocketAddress inetSocketAddress;
+    private final InetSocketAddress serverAddress;
     private final ServiceRegistry serviceRegistry;
     private final ServiceProvider serviceProvider;
     private final RpcSerDe rpcSerDe;
 
 
     private NettyServer(Builder builder){
-        this.inetSocketAddress = builder.inetSocketAddress;
+        this.serverAddress = builder.serverAddress;
         this.serviceRegistry = builder.serviceRegistry;
         this.serviceProvider = builder.serviceProvider == null ? new MemoryServiceProvider() : builder.serviceProvider;
         this.rpcSerDe = builder.rpcSerDe == null ? RpcSerDe.getByCode(DEFAULT_SERDE_CODE) : builder.rpcSerDe;
@@ -41,14 +41,14 @@ public class NettyServer extends AbstractRpcServer {
     }
 
     public static class Builder{
-        private InetSocketAddress inetSocketAddress;
+        private InetSocketAddress serverAddress;
         private ServiceRegistry serviceRegistry;
         private ServiceProvider serviceProvider;
         private RpcSerDe rpcSerDe;
         private boolean autoScanService = true;
 
-        public Builder(InetSocketAddress inetSocketAddress) {
-            this.inetSocketAddress = inetSocketAddress;
+        public Builder(InetSocketAddress serverAddress) {
+            this.serverAddress = serverAddress;
         }
 
         public Builder serviceRegistry(ServiceRegistry serviceRegistry){
@@ -81,7 +81,7 @@ public class NettyServer extends AbstractRpcServer {
     public <T> void publishService(Object service, String serviceName) {
         serviceProvider.addService(service, serviceName);
         if (serviceRegistry != null)
-            serviceRegistry.registerService(serviceName, inetSocketAddress);
+            serviceRegistry.registerService(serviceName, serverAddress);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class NettyServer extends AbstractRpcServer {
                             pipeline.addLast(new RpcRequestInboundHandler(serviceProvider));
                         }
                     });
-            ChannelFuture future = serverBootstrap.bind(inetSocketAddress.getPort()).sync();
+            ChannelFuture future = serverBootstrap.bind(serverAddress.getPort()).sync();
             future.channel().closeFuture().sync();
 
         } catch (InterruptedException e) {

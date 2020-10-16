@@ -25,17 +25,17 @@ public class NettyClient implements RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-    private final InetSocketAddress inetSocketAddress;
+    private final InetSocketAddress serverAddress;
     private final Bootstrap bootstrap;
     private final RpcSerDe rpcSerDe;
     private final ServiceRegistry serviceRegistry;
 
-    public NettyClient(InetSocketAddress inetSocketAddress) {
-        this(inetSocketAddress, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), null);
+    public NettyClient(InetSocketAddress serverAddress) {
+        this(serverAddress, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), null);
     }
 
-    public NettyClient(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe) {
-        this(inetSocketAddress, rpcSerDe, null);
+    public NettyClient(InetSocketAddress serverAddress, RpcSerDe rpcSerDe) {
+        this(serverAddress, rpcSerDe, null);
     }
 
     public NettyClient(ServiceRegistry serviceRegistry) {
@@ -46,8 +46,8 @@ public class NettyClient implements RpcClient {
         this(null, rpcSerDe, serviceRegistry);
     }
 
-    private NettyClient(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
-        this.inetSocketAddress = inetSocketAddress;
+    private NettyClient(InetSocketAddress serverAddress, RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
+        this.serverAddress = serverAddress;
         this.rpcSerDe = rpcSerDe;
         this.serviceRegistry = serviceRegistry;
         this.bootstrap = createBootstrap(this.rpcSerDe);
@@ -77,12 +77,12 @@ public class NettyClient implements RpcClient {
     public RpcResponse sendRequest(RpcRequest rpcRequest) {
 
         RpcResponse rpcResponse = null;
-        SocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : inetSocketAddress;
+        InetSocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : serverAddress;
         try {
             long t1 = System.currentTimeMillis();
             ChannelFuture future = bootstrap.connect(requestAddress).sync();
             logger.info("连接耗时:" + (System.currentTimeMillis() - t1));
-            logger.info("客户端连接到服务器 {}:{}", inetSocketAddress.getAddress(), inetSocketAddress.getPort());
+            logger.info("客户端连接到服务器 {}:{}", requestAddress.getAddress(), requestAddress.getPort());
             Channel channel = future.channel();
             if(channel != null) {
                 channel.writeAndFlush(rpcRequest).addListener(future1 -> {
