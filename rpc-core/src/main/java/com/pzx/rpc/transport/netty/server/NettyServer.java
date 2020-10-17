@@ -82,7 +82,7 @@ public class NettyServer extends AbstractRpcServer {
     }
 
     public static class Builder{
-        private InetSocketAddress serverAddress;
+        private final InetSocketAddress serverAddress;
         private ServiceRegistry serviceRegistry;
         private ServiceProvider serviceProvider;
         private RpcSerDe rpcSerDe;
@@ -91,6 +91,8 @@ public class NettyServer extends AbstractRpcServer {
         public Builder(InetSocketAddress serverAddress) {
             this.serverAddress = serverAddress;
         }
+
+
 
         public Builder serviceRegistry(ServiceRegistry serviceRegistry){
             this.serviceRegistry = serviceRegistry;

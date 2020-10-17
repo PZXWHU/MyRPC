@@ -68,7 +68,7 @@ public class SocketServer extends AbstractRpcServer {
     }
 
     public static class Builder{
-        private InetSocketAddress serverAddress;
+        private final InetSocketAddress serverAddress;
         private ServiceRegistry serviceRegistry;
         private ServiceProvider serviceProvider;
         private RpcSerDe rpcSerDe;

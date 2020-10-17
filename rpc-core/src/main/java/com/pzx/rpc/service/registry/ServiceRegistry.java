@@ -10,5 +10,4 @@ public interface ServiceRegistry {
 
     InetSocketAddress lookupService(String serviceName);
 
-    void clearRegisteredService();
 }

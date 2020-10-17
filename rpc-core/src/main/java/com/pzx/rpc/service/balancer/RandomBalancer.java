@@ -6,6 +6,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomBalancer implements LoadBalancer {
 
+    private RandomBalancer(){}
+
     @Override
     public <T> T select(List<T> list) {
         Random random  = ThreadLocalRandom.current();
