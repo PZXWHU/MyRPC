@@ -52,7 +52,7 @@ public class NettyServer extends AbstractRpcServer {
         if (this.autoScanService)
             scanAndPublishServices();
 
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap();

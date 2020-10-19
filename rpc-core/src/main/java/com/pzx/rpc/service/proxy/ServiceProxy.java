@@ -3,6 +3,7 @@ package com.pzx.rpc.service.proxy;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.transport.RpcClient;
+import com.pzx.rpc.transport.netty.server.NettyServer;
 import com.pzx.rpc.transport.socket.client.SocketClient;
 
 import javax.xml.ws.Response;
@@ -22,6 +23,7 @@ public class ServiceProxy implements InvocationHandler {
     public ServiceProxy(RpcClient rpcClient) {
         this.rpcClient = rpcClient;
     }
+
 
     @SuppressWarnings("unchecked")
     public <T> T getProxy(Class<T> clazz) {
