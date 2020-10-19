@@ -20,7 +20,7 @@ public class RpcResponse<T> implements Serializable {
     /**
      * 响应对应的请求号
      */
-    private String requestId;
+    private Integer requestId;
 
     /**
      * 响应状态码
@@ -35,21 +35,22 @@ public class RpcResponse<T> implements Serializable {
      */
     private T data;
 
-    public static <T> RpcResponse<T> success(T data){
+    public static <T> RpcResponse<T> success(Integer requestId, T data){
         RpcResponse<T> rpcResponse = new RpcResponse<>();
+        rpcResponse.setRequestId(requestId);
         rpcResponse.setStatusCode(ResponseCode.METHOD_INVOKER_SUCCESS.getCode());
         rpcResponse.setMessage(ResponseCode.METHOD_INVOKER_SUCCESS.getMessage());
         rpcResponse.setData(data);
         return rpcResponse;
     }
 
-    public static <T> RpcResponse<T> fail(ResponseCode code){
+    public static <T> RpcResponse<T> fail(Integer requestId, ResponseCode code){
         RpcResponse<T> rpcResponse = new RpcResponse<>();
+        rpcResponse.setRequestId(requestId);
         rpcResponse.setStatusCode(code.getCode());
         rpcResponse.setMessage(code.getMessage());
         rpcResponse.setData(null);
         return rpcResponse;
     }
-
 
 }

@@ -1,5 +1,6 @@
 package com.pzx.rpc.transport.netty.client;
 
+import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -21,9 +22,7 @@ public class RpcResponseInboundHandler extends SimpleChannelInboundHandler<RpcRe
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcResponse rpcResponse) throws Exception {
         logger.info(String.format("客户端接收到消息: %s", rpcResponse));
-        AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse");
-        ctx.channel().attr(key).set(rpcResponse);
-        ctx.channel().close();
+        RpcInvokeContext.completeFuture(rpcResponse);
     }
 
 

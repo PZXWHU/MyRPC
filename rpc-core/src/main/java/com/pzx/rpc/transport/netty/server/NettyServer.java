@@ -35,8 +35,8 @@ public class NettyServer extends AbstractRpcServer {
     private NettyServer(Builder builder){
         this.serverAddress = builder.serverAddress;
         this.serviceRegistry = builder.serviceRegistry;
-        this.serviceProvider = builder.serviceProvider == null ? new MemoryServiceProvider() : builder.serviceProvider;
-        this.rpcSerDe = builder.rpcSerDe == null ? RpcSerDe.getByCode(DEFAULT_SERDE_CODE) : builder.rpcSerDe;
+        this.serviceProvider =  new MemoryServiceProvider();
+        this.rpcSerDe = RpcSerDe.getByCode(DEFAULT_SERDE_CODE);
         this.autoScanService = builder.autoScanService;
     }
 
@@ -84,8 +84,6 @@ public class NettyServer extends AbstractRpcServer {
     public static class Builder{
         private final InetSocketAddress serverAddress;
         private ServiceRegistry serviceRegistry;
-        private ServiceProvider serviceProvider;
-        private RpcSerDe rpcSerDe;
         private boolean autoScanService = true;
 
         public Builder(InetSocketAddress serverAddress) {
@@ -93,19 +91,8 @@ public class NettyServer extends AbstractRpcServer {
         }
 
 
-
         public Builder serviceRegistry(ServiceRegistry serviceRegistry){
             this.serviceRegistry = serviceRegistry;
-            return this;
-        }
-
-        public Builder serviceProvider(ServiceProvider serviceProvider){
-            this.serviceProvider = serviceProvider;
-            return this;
-        }
-
-        public Builder rpcSerDe(RpcSerDe rpcSerDe){
-            this.rpcSerDe = rpcSerDe;
             return this;
         }
 

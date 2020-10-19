@@ -7,6 +7,8 @@ import lombok.Getter;
 @Getter
 public enum  RpcError {
 
+    RPC_INVOKER_FAILED("Rpc调用失败"),
+    RPC_INVOKER_TIMEOUT("Rpc调用超时"),
     REGISTER_SERVICE_FAILED("注册服务失败"),
     DEREGISTER_SERVICE_FAILED("注册服务失败"),
     FAILED_TO_CONNECT_TO_SERVICE_REGISTRY("无法连接到注册中心"),

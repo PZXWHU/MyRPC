@@ -18,9 +18,6 @@ public class TestNettyServer {
     public static void main(String[] args) {
 
         NettyServer server = new NettyServer.Builder(new InetSocketAddress("127.0.0.1",9999))
-                .serviceProvider(new MemoryServiceProvider())
-                .serviceRegistry(new NacosServiceRegistry(new InetSocketAddress("192.168.99.100", 8848)))
-                .rpcSerDe(RpcSerDe.getByCode(SerDeCode.valueOf("KRYO").getCode()))
                 .autoScanService(true)
                 .build();
         server.start();

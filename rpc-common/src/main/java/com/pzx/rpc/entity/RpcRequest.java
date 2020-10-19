@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import sun.security.provider.certpath.PKIXTimestampParameters;
 
 import java.io.Serializable;
 
@@ -25,7 +26,7 @@ public class RpcRequest implements Serializable {
     /**
      * 请求号
      */
-    private String requestId;
+    private Integer requestId;
 
     /**
      * 调用接口名称
@@ -46,4 +47,11 @@ public class RpcRequest implements Serializable {
      * 调用方法的参数的类型
      */
     private Class<?>[] paramTypes;//参数类型用字符串也可以
+
+    private static int lastRequestId = -1;
+    public synchronized static Integer nextRequestId(){
+        if (lastRequestId == Integer.MAX_VALUE)
+            lastRequestId = -1;
+        return ++lastRequestId;
+    }
 }

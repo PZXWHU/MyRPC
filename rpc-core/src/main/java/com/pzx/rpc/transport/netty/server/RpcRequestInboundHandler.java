@@ -28,7 +28,7 @@ public class RpcRequestInboundHandler extends SimpleChannelInboundHandler<RpcReq
         logger.info("服务器接收到请求: {}", rpcRequest);
         RpcResponse rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceProvider);
         ChannelFuture future = ctx.channel().writeAndFlush(rpcResponse);
-        future.addListener(ChannelFutureListener.CLOSE);
+
     }
 
     @Override

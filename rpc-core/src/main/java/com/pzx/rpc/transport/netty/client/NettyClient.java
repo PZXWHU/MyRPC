@@ -1,5 +1,6 @@
 package com.pzx.rpc.transport.netty.client;
 
+import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.serde.RpcSerDe;
@@ -20,87 +21,54 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.CompletableFuture;
 
 public class NettyClient implements RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
     private final InetSocketAddress serverAddress;
-    private final Bootstrap bootstrap;
     private final RpcSerDe rpcSerDe;
     private final ServiceRegistry serviceRegistry;
 
     public NettyClient(InetSocketAddress serverAddress) {
-        this(serverAddress, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), null);
-    }
-
-    public NettyClient(InetSocketAddress serverAddress, RpcSerDe rpcSerDe) {
-        this(serverAddress, rpcSerDe, null);
+        this(serverAddress,  null);
     }
 
     public NettyClient(ServiceRegistry serviceRegistry) {
-        this(null, RpcSerDe.getByCode(DEFAULT_SERDE_CODE), serviceRegistry);
+        this(null,  serviceRegistry);
     }
 
-    public NettyClient( RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
-        this(null, rpcSerDe, serviceRegistry);
-    }
-
-    private NettyClient(InetSocketAddress serverAddress, RpcSerDe rpcSerDe, ServiceRegistry serviceRegistry) {
+    private NettyClient(InetSocketAddress serverAddress, ServiceRegistry serviceRegistry) {
         this.serverAddress = serverAddress;
-        this.rpcSerDe = rpcSerDe;
+        this.rpcSerDe = RpcSerDe.getByCode(DEFAULT_SERDE_CODE);
         this.serviceRegistry = serviceRegistry;
-        this.bootstrap = createBootstrap(this.rpcSerDe);
+
     }
-
-    private Bootstrap createBootstrap(RpcSerDe rpcSerDe){
-        Bootstrap bootstrap = new Bootstrap();
-        EventLoopGroup group = new NioEventLoopGroup();
-        bootstrap.group(group)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        ChannelPipeline pipeline = ch.pipeline();
-                        pipeline.addLast(new ProtocolNettyDecoder())
-                                .addLast(new ProtocolNettyEncoder(rpcSerDe))
-                                .addLast(new RpcResponseInboundHandler());
-                    }
-                });
-
-        return bootstrap;
-    }
-
 
     @Override
-    public RpcResponse sendRequest(RpcRequest rpcRequest) {
+    public CompletableFuture<RpcResponse> sendRequest(RpcRequest rpcRequest) {
 
-        RpcResponse rpcResponse = null;
         InetSocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : serverAddress;
+        CompletableFuture<RpcResponse> resultFuture = new CompletableFuture<>();
+
         try {
-            long t1 = System.currentTimeMillis();
-            ChannelFuture future = bootstrap.connect(requestAddress).sync();
-            logger.info("连接耗时:" + (System.currentTimeMillis() - t1));
-            logger.info("客户端连接到服务器 {}:{}", requestAddress.getAddress(), requestAddress.getPort());
-            Channel channel = future.channel();
-            if(channel != null) {
-                channel.writeAndFlush(rpcRequest).addListener(future1 -> {
-                    if(future1.isSuccess()) {
-                        logger.info(String.format("客户端发送消息: %s", rpcRequest.toString()));
-                    } else {
-                        logger.error("发送消息时有错误发生: ", future1.cause());
-                    }
-                });
-                channel.closeFuture().sync();
-                AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse");
-                rpcResponse = channel.attr(key).get();
-            }
+            Channel channel = ChannelPool.get(requestAddress, rpcSerDe);
+            RpcInvokeContext.putUncompletedFuture(rpcRequest.getRequestId(), resultFuture);
+            channel.writeAndFlush(rpcRequest).addListener((ChannelFuture future1) -> {
+                if(future1.isSuccess()) {
+                    logger.info(String.format("客户端发送消息: %s", rpcRequest.toString()));
+                } else {
+                    future1.channel().close();
+                    resultFuture.completeExceptionally(future1.cause());
+                    logger.error("发送消息时有错误发生: ", future1.cause());
+                }
+            });
         } catch (InterruptedException e) {
             logger.error("发送消息时有错误发生: ", e);
         }
 
-        return rpcResponse;
+        return resultFuture;
 
     }
 }
