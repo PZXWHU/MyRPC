@@ -27,8 +27,19 @@ public class RpcRequestInboundHandler extends SimpleChannelInboundHandler<RpcReq
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
         logger.info("服务器接收到请求: {}", rpcRequest);
         RpcResponse rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceProvider);
-        ChannelFuture future = ctx.channel().writeAndFlush(rpcResponse);
+        ctx.channel().writeAndFlush(rpcResponse);
 
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        logger.info(ctx.channel().toString() + " 已连接");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info(ctx.channel().toString() + " 已关闭");
+        ctx.channel().close();
     }
 
     @Override

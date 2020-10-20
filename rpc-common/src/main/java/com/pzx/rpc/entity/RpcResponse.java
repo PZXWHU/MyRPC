@@ -35,6 +35,8 @@ public class RpcResponse<T> implements Serializable {
      */
     private T data;
 
+    public static final RpcResponse EMPTY_RESPONSE = new RpcResponse();
+
     public static <T> RpcResponse<T> success(Integer requestId, T data){
         RpcResponse<T> rpcResponse = new RpcResponse<>();
         rpcResponse.setRequestId(requestId);
@@ -52,5 +54,17 @@ public class RpcResponse<T> implements Serializable {
         rpcResponse.setData(null);
         return rpcResponse;
     }
+
+
+    public static <T> RpcResponse<T> fail(Integer requestId, ResponseCode code, String detail){
+        RpcResponse<T> rpcResponse = new RpcResponse<>();
+        rpcResponse.setRequestId(requestId);
+        rpcResponse.setStatusCode(code.getCode());
+        rpcResponse.setMessage(code.getMessage() + ":" + detail);
+        rpcResponse.setData(null);
+        return rpcResponse;
+    }
+
+
 
 }

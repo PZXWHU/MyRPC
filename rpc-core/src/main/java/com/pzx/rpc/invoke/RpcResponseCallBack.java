@@ -5,12 +5,9 @@ import com.pzx.rpc.entity.RpcResponse;
 
 public interface RpcResponseCallBack {
 
+    void onResponse(Object data);
 
-    void onResponse(RpcResponse rpcResponse);
-
-    void onServerException(RpcResponse rpcResponse);
-
-    void onClientException(Throwable throwable);
+    void onException(Throwable throwable);
 
 
 }

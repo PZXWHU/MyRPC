@@ -18,7 +18,7 @@ public class RpcInvokeContext {
     /**
      * 未完成的异步调用的Future
      */
-    public static ConcurrentHashMap<Integer, CompletableFuture<RpcResponse>> uncompletedFutures = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Integer, CompletableFuture<RpcResponse>> uncompletedFutures = new ConcurrentHashMap<>();
 
     /**
      * 增加未完成的异步调用的Future
@@ -33,8 +33,8 @@ public class RpcInvokeContext {
      * 删除未完成的异步调用的Future
      * @param requestId
      */
-    public static void removeUncompletedFuture(Integer requestId){
-        uncompletedFutures.remove(requestId);
+    public static CompletableFuture removeUncompletedFuture(Integer requestId){
+        return uncompletedFutures.remove(requestId);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.pzx.rpc.transport.netty.client;
 import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
+import com.pzx.rpc.enumeration.ResponseCode;
 import com.pzx.rpc.serde.RpcSerDe;
 import com.pzx.rpc.service.provider.ServiceProvider;
 import com.pzx.rpc.service.registry.ServiceRegistry;
@@ -60,7 +61,7 @@ public class NettyClient implements RpcClient {
                     logger.info(String.format("客户端发送消息: %s", rpcRequest.toString()));
                 } else {
                     future1.channel().close();
-                    resultFuture.completeExceptionally(future1.cause());
+                    resultFuture.complete(RpcResponse.fail(rpcRequest.getRequestId(), ResponseCode.METHOD_INVOKER_FAIL, future1.cause().toString()));
                     logger.error("发送消息时有错误发生: ", future1.cause());
                 }
             });

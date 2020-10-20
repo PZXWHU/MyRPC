@@ -4,10 +4,14 @@ import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.transport.RpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class OneWayInvocationHandler extends AbstractInvocationHandler {
+public class OneWayInvoker extends AbstractInvoker {
 
-    public OneWayInvocationHandler(RpcClient rpcClient, long timeout) {
+    private static final Logger logger = LoggerFactory.getLogger(OneWayInvoker.class);
+
+    public OneWayInvoker(RpcClient rpcClient, long timeout) {
         super(rpcClient, timeout);
     }
 
@@ -15,6 +19,6 @@ public class OneWayInvocationHandler extends AbstractInvocationHandler {
     protected RpcResponse doInvoke(RpcRequest rpcRequest) {
         rpcClient.sendRequest(rpcRequest);
         RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());//因为rpcClient.sendRequest会将Future加入RpcInvokeContext.uncompletedFutures
-        return null;
+        return RpcResponse.EMPTY_RESPONSE;
     }
 }

@@ -23,7 +23,7 @@ public class ChannelPool {
     private static Map<String, Channel> channels = new ConcurrentHashMap<>();
 
     public static Channel get(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe) throws InterruptedException{
-        String key = inetSocketAddress.toString() + rpcSerDe.getCode();
+        String key = (inetSocketAddress.toString() + rpcSerDe.getCode()).intern();
 
         Channel channel;
         //当出现key相同时，由于字符串常量池的存在，相同key会是同一个对象
@@ -50,14 +50,16 @@ public class ChannelPool {
             channel = bootstrap.connect(inetSocketAddress).sync().channel();
             channels.put(key, channel);
         }
-
-
         return channel;
 
     }
 
-    public void close(){
-        eventLoopGroup.shutdownGracefully();
+    public static void close(){
+        if (eventLoopGroup != null)
+            eventLoopGroup.shutdownGracefully();
+        for(Channel channel : channels.values()){
+            channel.close();
+        }
     }
 
     private static Bootstrap initializeBootstrap() {

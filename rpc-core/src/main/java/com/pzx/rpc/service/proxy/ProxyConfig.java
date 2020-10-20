@@ -2,10 +2,10 @@ package com.pzx.rpc.service.proxy;
 
 import com.google.common.base.Preconditions;
 import com.pzx.rpc.enumeration.InvokeType;
-import com.pzx.rpc.invoke.CallbackInvocationHandler;
-import com.pzx.rpc.invoke.FutureInvocationHandler;
-import com.pzx.rpc.invoke.OneWayInvocationHandler;
-import com.pzx.rpc.invoke.SyncInvocationHandler;
+import com.pzx.rpc.invoke.CallbackInvoker;
+import com.pzx.rpc.invoke.FutureInvoker;
+import com.pzx.rpc.invoke.OneWayInvoker;
+import com.pzx.rpc.invoke.SyncInvoker;
 import com.pzx.rpc.service.registry.NacosServiceRegistry;
 import com.pzx.rpc.service.registry.ServiceRegistry;
 import com.pzx.rpc.service.registry.ZkServiceRegistry;
@@ -16,6 +16,8 @@ import lombok.Getter;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 public class ProxyConfig {
@@ -25,22 +27,24 @@ public class ProxyConfig {
     private String directServerUrl;
     private String registryCenterUrl;
 
+    private static final Map<String, RpcClient> cacheRpcClient = new HashMap<>();
+
     @SuppressWarnings("unchecked")
     public <T> T getProxy(Class<T> clazz){
         RpcClient rpcClient = createRpcClient();
         InvocationHandler invocationHandler = null;
         switch (invokeType){
             case ONEWAY:
-                invocationHandler = new OneWayInvocationHandler(rpcClient, timeout);
+                invocationHandler = new OneWayInvoker(rpcClient, timeout);
                 break;
             case SYNC:
-                invocationHandler = new SyncInvocationHandler(rpcClient, timeout);
+                invocationHandler = new SyncInvoker(rpcClient, timeout);
                 break;
             case FUTURE:
-                invocationHandler = new FutureInvocationHandler(rpcClient, timeout);
+                invocationHandler = new FutureInvoker(rpcClient, timeout);
                 break;
             case CALLBACK:
-                invocationHandler = new CallbackInvocationHandler(rpcClient, timeout);
+                invocationHandler = new CallbackInvoker(rpcClient, timeout);
                 break;
         }
 
@@ -60,12 +64,17 @@ public class ProxyConfig {
     }
 
     public ProxyConfig setDirectServerUrl(String directServerUrl) {
+        Preconditions.checkArgument(registryCenterUrl == null ,
+                "directServerUrl and registryCenterUrl can not be set at the same time!");
         this.directServerUrl = directServerUrl;
         return this;
     }
 
     public ProxyConfig setRegistryCenterUrl(String registryCenterUrl) {
+        Preconditions.checkArgument(directServerUrl == null ,
+                "directServerUrl and registryCenterUrl can not be set at the same time!");
         this.registryCenterUrl = registryCenterUrl;
+
         return this;
     }
 
@@ -76,6 +85,7 @@ public class ProxyConfig {
     private RpcClient createRpcClient(){
         Preconditions.checkArgument(directServerUrl != null || registryCenterUrl != null,
                 "directServerUrl and registryCenterUrl can not be null at the same time!");
+
         RpcClient rpcClient;
         if (this.directServerUrl != null){
             String[] serverUrlArray = this.directServerUrl.split(":");
@@ -84,7 +94,7 @@ public class ProxyConfig {
         }else {
             String[] registryUrlArray = this.registryCenterUrl.split(":");
             ServiceRegistry serviceRegistry;
-            InetSocketAddress registryAddress = new InetSocketAddress(registryUrlArray[1], Integer.parseInt(registryUrlArray[2]));
+            InetSocketAddress registryAddress = new InetSocketAddress(registryUrlArray[1].substring(2), Integer.parseInt(registryUrlArray[2]));
             switch (registryUrlArray[0]){
                 case "nacos":
                     serviceRegistry = new NacosServiceRegistry(registryAddress);
