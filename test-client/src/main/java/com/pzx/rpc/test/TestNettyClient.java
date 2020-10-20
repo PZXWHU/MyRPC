@@ -42,7 +42,7 @@ public class TestNettyClient {
             }
             @Override
             public void onException(Throwable throwable) {
-
+                System.out.println(throwable);
             }
         });
         String res = helloService.hello(new HelloObject(1,"hello1"));

@@ -90,8 +90,8 @@ server.start();
 ProxyConfig proxyConfig = new ProxyConfig()
                 .setDirectServerUrl("127.0.0.1:9999")
                 //.setRegistryCenterUrl("nacos://192.168.99.100:8848")//RegistryCenterUrl和DirectServerUrl不可同时设置
-                .setInvokeType(InvokeType.CALLBACK)//OneWay、Sync、Future、Callback四种方式
-                .setTimeout(5000);//Rpc调用的timeout,单位为毫秒
+                .setInvokeType(InvokeType.CALLBACK)//OneWay、Sync、Future、Callback四种方式，默认为Sync
+                .setTimeout(5000);//Rpc调用的timeout,单位为毫秒,默认为Long.MAX_VALUE
 ```
 
 ### 2. 创建服务代理对象
@@ -144,12 +144,17 @@ RpcInvokeContext.getContext().setResponseCallback(new RpcResponseCallBack() {
 String res = helloService.hello(new HelloObject(3,"hello3"));
 System.out.println("it's null : " + res);
 ```
-#### 4. 关闭Rpc客户端
+### 4. 关闭Rpc客户端
 ```java
 //注意：关闭Rpc客户端后，还未完成的异步Rpc调用将无法完成，全部超时
 ChannelPool.close();
 ThreadPoolFactory.close();
 ```
+
+### Rpc调用失败或者超时
+1. oneway方式没有超时，也不会接收到失败信息
+2. sync和future都会获取到结果数据：null
+3. callback方式会触发onException方法
 
 参考：
 https://blog.csdn.net/qq_40856284/article/details/106972591
