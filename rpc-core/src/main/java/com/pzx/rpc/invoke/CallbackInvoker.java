@@ -32,7 +32,7 @@ public class CallbackInvoker extends AbstractInvoker {
         RpcInvokeContext.getContext().setResponseCallback(null);//将callback赋值为null，避免被下一次rpc所使用。
         if (rpcResponseCallBack != null){
             resultFuture.whenCompleteAsync((RpcResponse rpcResponse, Throwable throwable)->{
-                checkRpcResponse(rpcResponse);
+                checkRpcResponse(rpcRequest, rpcResponse);
                 if(rpcResponse.getStatusCode() == ResponseCode.METHOD_INVOKER_SUCCESS.getCode()){
                     rpcResponseCallBack.onResponse(rpcResponse.getData());
                 }else {

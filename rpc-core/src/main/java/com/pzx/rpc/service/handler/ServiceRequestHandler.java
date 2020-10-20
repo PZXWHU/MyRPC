@@ -18,21 +18,28 @@ public class ServiceRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceRequestHandler.class);
 
-    public RpcResponse<Object> handle(RpcRequest rpcRequest, ServiceProvider serviceProvider) {
+    public RpcResponse handle(RpcRequest rpcRequest, ServiceProvider serviceProvider) {
         String interfaceName = rpcRequest.getInterfaceName();
         Object service = serviceProvider.getService(interfaceName);
+        if (service == null){
+            logger.error("未找到对应服务：" + rpcRequest);
+            return RpcResponse.fail(rpcRequest.getRequestId(), ResponseCode.CLASS_NOT_FOUND);
+        }
         return invokeTargetMethod(rpcRequest, service);
     }
 
     private RpcResponse invokeTargetMethod(RpcRequest rpcRequest, Object service){
+
         try {
             Method method = service.getClass().getMethod(rpcRequest.getMethodName(), rpcRequest.getParamTypes());
             Object result = method.invoke(service, rpcRequest.getParameters());
             logger.info("服务:{} 成功调用方法:{}", rpcRequest.getInterfaceName(), rpcRequest.getMethodName());
             return RpcResponse.success(rpcRequest.getRequestId(), result);
         }catch (NoSuchMethodException e){
+            logger.error("未找到对应方法：" + rpcRequest + ":" + e);
             return RpcResponse.fail(rpcRequest.getRequestId(), ResponseCode.METHOD_NOT_FOUND, e.toString());
         }catch (IllegalAccessException | InvocationTargetException e){
+            logger.error("服务调用时出错：" + rpcRequest + ":" + e);
             return RpcResponse.fail(rpcRequest.getRequestId(), ResponseCode.METHOD_INVOKER_FAIL, e.toString());
         }
 

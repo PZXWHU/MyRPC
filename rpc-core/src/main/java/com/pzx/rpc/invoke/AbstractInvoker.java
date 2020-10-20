@@ -45,10 +45,10 @@ public abstract class AbstractInvoker implements InvocationHandler {
 
     abstract protected RpcResponse doInvoke(RpcRequest rpcRequest);
 
-    protected static void checkRpcResponse(RpcResponse rpcResponse){
+    protected static void checkRpcResponse(RpcRequest rpcRequest, RpcResponse rpcResponse){
         if (rpcResponse != RpcResponse.EMPTY_RESPONSE
                 && rpcResponse.getStatusCode() != ResponseCode.METHOD_INVOKER_SUCCESS.getCode()){
-            logger.error("Rpc调用失败：" + rpcResponse.getStatusCode() + ":" + rpcResponse.getMessage());
+            logger.error("Rpc调用失败：{} : {}", rpcRequest, rpcResponse.getMessage());
         }
     }
 

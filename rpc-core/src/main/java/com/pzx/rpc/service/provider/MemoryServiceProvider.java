@@ -52,9 +52,6 @@ public class MemoryServiceProvider implements ServiceProvider {
     @Override
     public Object getService(String serviceName) {
         Object service = serviceMap.get(serviceName);
-        if(service == null) {
-            throw new RpcException(RpcError.SERVICE_NOT_FOUND);
-        }
         return service;
 
     }

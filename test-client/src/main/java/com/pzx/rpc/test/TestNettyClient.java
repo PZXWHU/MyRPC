@@ -28,9 +28,6 @@ public class TestNettyClient {
 
     public static void main(String[] args) throws Exception {
 
-        int i = -1;
-
-
         ProxyConfig proxyConfig = new ProxyConfig()
                 .setDirectServerUrl("127.0.0.1:9999")
                 //.setRegistryCenterUrl("nacos://192.168.99.100:8488")
@@ -41,29 +38,29 @@ public class TestNettyClient {
         RpcInvokeContext.getContext().setResponseCallback(new RpcResponseCallBack() {
             @Override
             public void onResponse(Object data) {
-                System.out.println(data + "  这是callback中获得的");
+                System.out.println("callback :" + data);
             }
             @Override
             public void onException(Throwable throwable) {
 
             }
         });
-        String res = helloService.hello(new HelloObject(i++,"dasdsa"));
-        System.out.println(res);
+        String res = helloService.hello(new HelloObject(1,"hello1"));
+        System.out.println("it's null : " + res);
 
 
 
         proxyConfig.setInvokeType(InvokeType.FUTURE);
         helloService = proxyConfig.getProxy(HelloService.class);
-        res = helloService.hello(new HelloObject(i++,"dasdsa"));
-        System.out.println(res);
+        res = helloService.hello(new HelloObject(2,"hello2"));
+        System.out.println("it's null : " + res);
         Future future = RpcInvokeContext.getContext().getFuture();
-        System.out.println(future.get()+ "这是future获取的");
+        System.out.println("future : " + future.get());
 
         proxyConfig.setInvokeType(InvokeType.SYNC);
         helloService = proxyConfig.getProxy(HelloService.class);
-        res = helloService.hello(new HelloObject(i++,"dasdsa"));
-        System.out.println(res + "这是同步获取的");
+        res = helloService.hello(new HelloObject(3,"hello3"));
+        System.out.println("sync : " + res);
 
 
         proxyConfig.setInvokeType(InvokeType.ONEWAY);
