@@ -25,20 +25,14 @@ public class FutureInvoker extends AbstractInvoker {
     @Override
     protected RpcResponse doInvoke(RpcRequest rpcRequest) {
 
-        CompletableFuture<Object> contextFuture = new CompletableFuture<>();
+        CompletableFuture<RpcResponse> resultFuture =  rpcClient.sendRequest(rpcRequest);
+        CompletableFuture<Object> contextFuture = resultFuture.thenApplyAsync((rpcResponse)->{
+            checkRpcServerError(rpcRequest, rpcResponse);
+            return rpcResponse.getData();
+        }, AsyncRuntime.getAsyncThreadPool());
+
         RpcInvokeContext.getContext().setFuture(contextFuture);
 
-        AsyncRuntime.getAsyncThreadPool().submit(()->{
-            CompletableFuture<RpcResponse> resultFuture =  rpcClient.sendRequest(rpcRequest);
-            //FutureInvoke ： 在 RpcInvokeContext设置调用结果Future
-            resultFuture.whenCompleteAsync((rpcResponse, throwable)->{
-                checkRpcServerError(rpcRequest, rpcResponse);
-                if (rpcResponse != null)
-                    contextFuture.complete(rpcResponse.getData());
-                else
-                    contextFuture.completeExceptionally(throwable);
-            }, AsyncRuntime.getAsyncThreadPool());
-        });
         setTimeoutCheckAsync(rpcRequest, timeout);
 
         return RpcResponse.EMPTY_RESPONSE;

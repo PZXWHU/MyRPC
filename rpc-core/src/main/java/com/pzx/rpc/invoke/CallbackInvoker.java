@@ -29,21 +29,19 @@ public class CallbackInvoker extends AbstractInvoker {
         RpcResponseCallBack rpcResponseCallBack = RpcInvokeContext.getContext().getResponseCallback();
         RpcInvokeContext.getContext().setResponseCallback(null);//将callback赋值为null，避免被下一次rpc所使用。
 
-        AsyncRuntime.getAsyncThreadPool().submit(()->{
-            CompletableFuture<RpcResponse> resultFuture =  rpcClient.sendRequest(rpcRequest);
-            //CallbackInvoke ： 为resultFuture设置callback
-            if (rpcResponseCallBack != null){
-                resultFuture.whenCompleteAsync((rpcResponse, throwable)->{
-                    checkRpcServerError(rpcRequest, rpcResponse);
-                    if (throwable != null)
-                        rpcResponseCallBack.onException(throwable);
-                    else if(rpcResponse.getStatusCode() == ResponseCode.METHOD_INVOKER_SUCCESS.getCode())
-                        rpcResponseCallBack.onResponse(rpcResponse.getData());
-                    else
-                        rpcResponseCallBack.onException(new RpcException(RpcError.RPC_INVOKER_FAILED, rpcResponse.getMessage()));
-                }, AsyncRuntime.getAsyncThreadPool());
-            }
-        });
+        CompletableFuture<RpcResponse> resultFuture =  rpcClient.sendRequest(rpcRequest);
+        //CallbackInvoke ： 为resultFuture设置callback
+        if (rpcResponseCallBack != null){
+            resultFuture.whenCompleteAsync((rpcResponse, throwable)->{
+                checkRpcServerError(rpcRequest, rpcResponse);
+                if (throwable != null)
+                    rpcResponseCallBack.onException(throwable);
+                else if(rpcResponse.getStatusCode() == ResponseCode.METHOD_INVOKER_SUCCESS.getCode())
+                    rpcResponseCallBack.onResponse(rpcResponse.getData());
+                else
+                    rpcResponseCallBack.onException(new RpcException(RpcError.RPC_INVOKER_FAILED, rpcResponse.getMessage()));
+            }, AsyncRuntime.getAsyncThreadPool());
+        }
 
         setTimeoutCheckAsync(rpcRequest, timeout);
 

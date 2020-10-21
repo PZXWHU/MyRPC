@@ -20,6 +20,10 @@ public class RpcInvokeContext {
      */
     private static ConcurrentHashMap<Integer, CompletableFuture<RpcResponse>> uncompletedFutures = new ConcurrentHashMap<>();
 
+    public static boolean containsUncompletedFuture(Integer requestId){
+        return uncompletedFutures.contains(requestId);
+    }
+
     /**
      * 增加未完成的异步调用的Future
      * @param requestId

@@ -42,21 +42,25 @@ public class TestNettyClient {
 
 
 
-        while (i < 2){
-            proxyConfig.setInvokeType(InvokeType.CALLBACK);
-            RpcInvokeContext.getContext().setResponseCallback(new RpcResponseCallBack() {
-                @Override
-                public void onResponse(Object data) {
-                    System.out.println("callback :" + data);
-                }
-                @Override
-                public void onException(Throwable throwable) {
-                    logger.error("callback :Rpc调用出错: " + throwable.toString());
-                }
-            });
-            HelloService helloService1 = proxyConfig.getProxy(HelloService.class);
-            String res1 = helloService1.hello(new HelloObject(i++,"hello" + 1));
-            System.out.println("it's null : " + res1);
+        while (i < 6){
+            while (i < 4) {
+                proxyConfig.setInvokeType(InvokeType.CALLBACK);
+                RpcInvokeContext.getContext().setResponseCallback(new RpcResponseCallBack() {
+                    @Override
+                    public void onResponse(Object data) {
+                        System.out.println("callback :" + data);
+                    }
+
+                    @Override
+                    public void onException(Throwable throwable) {
+                        System.out.println("callback :Rpc调用出错: " + throwable.toString());
+                    }
+                });
+                HelloService helloService1 = proxyConfig.getProxy(HelloService.class);
+                String res1 = helloService1.hello(new HelloObject(i++, "hello" + 1));
+                System.out.println("it's null : " + res1);
+            }
+
 
             proxyConfig.setInvokeType(InvokeType.FUTURE);
             helloService = proxyConfig.getProxy(HelloService.class);
@@ -66,7 +70,7 @@ public class TestNettyClient {
             try {
                 System.out.println("future : " + future.get());
             }catch (ExecutionException e){
-                logger.error("future : Rpc调用出错:" + e);
+                System.out.println("future : Rpc调用出错:" + e);
             }
 
             proxyConfig.setInvokeType(InvokeType.SYNC);

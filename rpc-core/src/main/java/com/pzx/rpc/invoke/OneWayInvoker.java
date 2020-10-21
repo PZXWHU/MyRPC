@@ -18,11 +18,10 @@ public class OneWayInvoker extends AbstractInvoker {
 
     @Override
     protected RpcResponse doInvoke(RpcRequest rpcRequest) {
-        AsyncRuntime.getAsyncThreadPool().submit(()->{
-            rpcClient.sendRequest(rpcRequest);
-            //因为rpcClient.sendRequest会将Future加入RpcInvokeContext.uncompletedFutures
-            RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());
-        });
+
+        rpcClient.sendRequest(rpcRequest);
+        //因为rpcClient.sendRequest会将Future加入RpcInvokeContext.uncompletedFutures
+        RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());
 
         return RpcResponse.EMPTY_RESPONSE;
     }
