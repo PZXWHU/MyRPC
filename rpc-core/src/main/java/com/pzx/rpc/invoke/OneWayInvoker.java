@@ -1,5 +1,6 @@
 package com.pzx.rpc.invoke;
 
+import com.pzx.rpc.context.AsyncRuntime;
 import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
@@ -17,8 +18,12 @@ public class OneWayInvoker extends AbstractInvoker {
 
     @Override
     protected RpcResponse doInvoke(RpcRequest rpcRequest) {
-        rpcClient.sendRequest(rpcRequest);
-        RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());//因为rpcClient.sendRequest会将Future加入RpcInvokeContext.uncompletedFutures
+        AsyncRuntime.getAsyncThreadPool().submit(()->{
+            rpcClient.sendRequest(rpcRequest);
+            //因为rpcClient.sendRequest会将Future加入RpcInvokeContext.uncompletedFutures
+            RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());
+        });
+
         return RpcResponse.EMPTY_RESPONSE;
     }
 }

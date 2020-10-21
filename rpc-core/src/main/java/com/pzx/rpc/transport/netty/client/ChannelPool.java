@@ -1,5 +1,6 @@
 package com.pzx.rpc.transport.netty.client;
 
+import com.pzx.rpc.exception.RpcConnectException;
 import com.pzx.rpc.serde.RpcSerDe;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyDecoder;
 import com.pzx.rpc.transport.netty.codec.ProtocolNettyEncoder;
@@ -9,27 +10,38 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class ChannelPool {
 
+    private static final Logger logger = LoggerFactory.getLogger(ChannelPool.class);
     private static final Bootstrap bootstrap = initializeBootstrap();
     private static EventLoopGroup eventLoopGroup;
     private static Map<String, Channel> channels = new ConcurrentHashMap<>();
 
-    public static Channel get(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe) throws InterruptedException{
-        String key = (inetSocketAddress.toString() + rpcSerDe.getCode()).intern();
+    /**
+     * 当连接失败时，返回null
+     * @param inetSocketAddress
+     * @param rpcSerDe
+     * @return
+     * @throws InterruptedException
+     */
+    public static Channel get(InetSocketAddress inetSocketAddress, RpcSerDe rpcSerDe) throws InterruptedException, RpcConnectException{
+        String key = (inetSocketAddress.toString() + rpcSerDe.getCode()).intern();//获取字符串常量池中的对象
 
-        Channel channel;
+
         //当出现key相同时，由于字符串常量池的存在，相同key会是同一个对象
         synchronized (key){
             if (channels.containsKey(key)) {
-                channel = channels.get(key);
+                Channel channel = channels.get(key);
                 if(channels != null && channel.isActive()) {
                     return channel;
                 } else {
@@ -47,10 +59,26 @@ public class ChannelPool {
                 }
             });
 
-            channel = bootstrap.connect(inetSocketAddress).sync().channel();
-            channels.put(key, channel);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            Throwable connectThrowable = new Throwable();
+            bootstrap.connect(inetSocketAddress).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                    if (channelFuture.isSuccess()){
+                        channels.put(key, channelFuture.channel());
+                    }else {
+                        channelFuture.channel().close();
+                        connectThrowable.initCause(channelFuture.cause());
+                    }
+                    countDownLatch.countDown();
+                }
+            });
+            countDownLatch.await();
+            if (channels.get(key) == null)
+                throw new RpcConnectException(connectThrowable);
         }
-        return channel;
+
+        return channels.get(key);
 
     }
 
@@ -75,7 +103,6 @@ public class ChannelPool {
                 .option(ChannelOption.TCP_NODELAY, true);
         return bootstrap;
     }
-
 
 
 }

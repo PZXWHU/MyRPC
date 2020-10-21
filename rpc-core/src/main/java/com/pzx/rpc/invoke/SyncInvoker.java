@@ -30,7 +30,7 @@ public class SyncInvoker extends AbstractInvoker {
         }catch (InterruptedException | ExecutionException e) {
             logger.error("RPC调用失败 ：" + e);
         }
-        checkRpcResponse(rpcRequest, rpcResponse);
+        checkRpcServerError(rpcRequest, rpcResponse);
         return rpcResponse;
     }
 }

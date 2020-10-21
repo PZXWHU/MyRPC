@@ -1,14 +1,20 @@
 package com.pzx.rpc.invoke;
 
+import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.enumeration.ResponseCode;
+import com.pzx.rpc.enumeration.RpcError;
+import com.pzx.rpc.exception.RpcException;
+import com.pzx.rpc.factory.ThreadPoolFactory;
 import com.pzx.rpc.transport.RpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractInvoker implements InvocationHandler {
 
@@ -45,11 +51,22 @@ public abstract class AbstractInvoker implements InvocationHandler {
 
     abstract protected RpcResponse doInvoke(RpcRequest rpcRequest);
 
-    protected static void checkRpcResponse(RpcRequest rpcRequest, RpcResponse rpcResponse){
-        if (rpcResponse != RpcResponse.EMPTY_RESPONSE
+    protected static void checkRpcServerError(RpcRequest rpcRequest, RpcResponse rpcResponse){
+        if (rpcResponse != null && rpcResponse != RpcResponse.EMPTY_RESPONSE
                 && rpcResponse.getStatusCode() != ResponseCode.METHOD_INVOKER_SUCCESS.getCode()){
-            logger.error("Rpc调用失败：{} : {}", rpcRequest, rpcResponse.getMessage());
+            logger.error("Rpc调用失败：{} : RpcServer出现错误 :{}", rpcRequest, rpcResponse.getMessage());
         }
+    }
+
+    protected static void setTimeoutCheckAsync(RpcRequest rpcRequest, long timeout){
+        ////超时清除resultFuture
+        ThreadPoolFactory.getScheduledThreadPool().schedule(()->{
+            CompletableFuture completableFuture;
+            if ((completableFuture = RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId())) != null){
+                completableFuture.completeExceptionally(new RpcException(RpcError.RPC_INVOKER_TIMEOUT));
+                logger.error("Rpc调用超时：" + rpcRequest);
+            }
+        }, timeout, TimeUnit.MILLISECONDS);
     }
 
 }

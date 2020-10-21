@@ -25,29 +25,27 @@ public class CallbackInvoker extends AbstractInvoker {
 
     @Override
     protected RpcResponse doInvoke(RpcRequest rpcRequest) {
-        CompletableFuture<RpcResponse> resultFuture =  rpcClient.sendRequest(rpcRequest);
 
-        //CallbackInvoke ： 为resultFuture设置callback
         RpcResponseCallBack rpcResponseCallBack = RpcInvokeContext.getContext().getResponseCallback();
         RpcInvokeContext.getContext().setResponseCallback(null);//将callback赋值为null，避免被下一次rpc所使用。
-        if (rpcResponseCallBack != null){
-            resultFuture.whenCompleteAsync((RpcResponse rpcResponse, Throwable throwable)->{
-                checkRpcResponse(rpcRequest, rpcResponse);
-                if(rpcResponse.getStatusCode() == ResponseCode.METHOD_INVOKER_SUCCESS.getCode()){
-                    rpcResponseCallBack.onResponse(rpcResponse.getData());
-                }else {
-                    rpcResponseCallBack.onException(new RpcException(RpcError.RPC_INVOKER_FAILED, rpcResponse.getMessage()));
-                }
-            }, AsyncRuntime.getAsyncThreadPool());
-        }
 
-        //超时清除resultFuture
-        ThreadPoolFactory.getScheduledThreadPool().schedule(()->{
-            if (RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId()) != null){
-                rpcResponseCallBack.onException(new RpcException(RpcError.RPC_INVOKER_TIMEOUT));
-                logger.error("Rpc调用超时：" + rpcRequest);
+        AsyncRuntime.getAsyncThreadPool().submit(()->{
+            CompletableFuture<RpcResponse> resultFuture =  rpcClient.sendRequest(rpcRequest);
+            //CallbackInvoke ： 为resultFuture设置callback
+            if (rpcResponseCallBack != null){
+                resultFuture.whenCompleteAsync((rpcResponse, throwable)->{
+                    checkRpcServerError(rpcRequest, rpcResponse);
+                    if (throwable != null)
+                        rpcResponseCallBack.onException(throwable);
+                    else if(rpcResponse.getStatusCode() == ResponseCode.METHOD_INVOKER_SUCCESS.getCode())
+                        rpcResponseCallBack.onResponse(rpcResponse.getData());
+                    else
+                        rpcResponseCallBack.onException(new RpcException(RpcError.RPC_INVOKER_FAILED, rpcResponse.getMessage()));
+                }, AsyncRuntime.getAsyncThreadPool());
             }
-        }, timeout, TimeUnit.MILLISECONDS);
+        });
+
+        setTimeoutCheckAsync(rpcRequest, timeout);
 
         return RpcResponse.EMPTY_RESPONSE;
     }

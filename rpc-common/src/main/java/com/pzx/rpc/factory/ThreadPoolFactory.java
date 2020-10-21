@@ -4,7 +4,7 @@ import java.util.concurrent.*;
 
 public class ThreadPoolFactory {
 
-    private static final int CORE_POOL_SIZE = 5;
+    private static final int CORE_POOL_SIZE = 10;
     private static final int MAXIMUM_POOL_SIZE = 50;
     private static final int KEEP_ALIVE_TIME = 60;
     private static final int BLOCKING_QUEUE_CAPACITY = 100;

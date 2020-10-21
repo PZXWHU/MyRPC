@@ -151,9 +151,22 @@ ChannelPool.close();
 ThreadPoolFactory.close();
 ```
 
-### Rpc调用失败或者超时
-1. oneway方式没有超时，也不会接收到失败信息
-2. sync和future都会获取到结果数据：null
+### Rpc异常处理
+oneway方式没有异常处理机制
+
+#### Rpc连接异常或者发送异常
+1. sync方式返回null
+2. future方式报出异常
+3. callback方式会触发onException方法
+
+### RpcServer端处理异常
+1. sync方式返回null
+2. future方式返回null
+3. callback方式会触发onException方法
+
+### Rpc调用超时
+1. sync方式返回null
+2. future方式报出异常
 3. callback方式会触发onException方法
 
 参考：

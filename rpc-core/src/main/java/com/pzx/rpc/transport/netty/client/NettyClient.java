@@ -4,6 +4,9 @@ import com.pzx.rpc.context.RpcInvokeContext;
 import com.pzx.rpc.entity.RpcRequest;
 import com.pzx.rpc.entity.RpcResponse;
 import com.pzx.rpc.enumeration.ResponseCode;
+import com.pzx.rpc.enumeration.RpcError;
+import com.pzx.rpc.exception.RpcConnectException;
+import com.pzx.rpc.exception.RpcException;
 import com.pzx.rpc.serde.RpcSerDe;
 import com.pzx.rpc.service.provider.ServiceProvider;
 import com.pzx.rpc.service.registry.ServiceRegistry;
@@ -52,21 +55,24 @@ public class NettyClient implements RpcClient {
 
         InetSocketAddress requestAddress = serviceRegistry != null ? serviceRegistry.lookupService(rpcRequest.getInterfaceName()) : serverAddress;
         CompletableFuture<RpcResponse> resultFuture = new CompletableFuture<>();
+        RpcInvokeContext.putUncompletedFuture(rpcRequest.getRequestId(), resultFuture);
 
         try {
             Channel channel = ChannelPool.get(requestAddress, rpcSerDe);
-            RpcInvokeContext.putUncompletedFuture(rpcRequest.getRequestId(), resultFuture);
             channel.writeAndFlush(rpcRequest).addListener((ChannelFuture future1) -> {
                 if(future1.isSuccess()) {
                     logger.info(String.format("客户端发送消息: %s", rpcRequest.toString()));
                 } else {
                     future1.channel().close();
-                    resultFuture.complete(RpcResponse.fail(rpcRequest.getRequestId(), ResponseCode.METHOD_INVOKER_FAIL, future1.cause().toString()));
-                    logger.error("发送消息时有错误发生: ", future1.cause());
+                    RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());
+                    resultFuture.completeExceptionally(new RpcException(future1.cause()));
+                    //logger.error("发送消息时有错误发生: ", future1.cause());
                 }
             });
-        } catch (InterruptedException e) {
-            logger.error("发送消息时有错误发生: ", e);
+        } catch (InterruptedException | RpcConnectException e) {
+            RpcInvokeContext.removeUncompletedFuture(rpcRequest.getRequestId());
+            resultFuture.completeExceptionally(new RpcException(e));
+            //logger.error("发送消息时有错误发生: ", e);
         }
 
         return resultFuture;
