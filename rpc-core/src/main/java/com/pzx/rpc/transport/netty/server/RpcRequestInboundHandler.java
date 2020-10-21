@@ -25,6 +25,7 @@ public class RpcRequestInboundHandler extends SimpleChannelInboundHandler<RpcReq
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
+
         logger.info("服务器接收到请求: {}", rpcRequest);
         RpcResponse rpcResponse = serviceRequestHandler.handle(rpcRequest, serviceProvider);
         ctx.channel().writeAndFlush(rpcResponse);

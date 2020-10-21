@@ -14,6 +14,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +56,7 @@ public class NettyServer extends AbstractRpcServer {
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventExecutorGroup businessGroup = new DefaultEventExecutorGroup(2);//业务线程池
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup, workerGroup)
@@ -66,7 +69,7 @@ public class NettyServer extends AbstractRpcServer {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new ProtocolNettyEncoder(rpcSerDe));
                             pipeline.addLast(new ProtocolNettyDecoder());
-                            pipeline.addLast(new RpcRequestInboundHandler(serviceProvider));
+                            pipeline.addLast(businessGroup, new RpcRequestInboundHandler(serviceProvider));
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(serverAddress.getPort()).sync();

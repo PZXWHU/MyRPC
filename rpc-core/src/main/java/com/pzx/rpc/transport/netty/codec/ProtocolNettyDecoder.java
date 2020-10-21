@@ -25,7 +25,6 @@ public class ProtocolNettyDecoder extends ReplayingDecoder {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
 
-
         //获得数据包长度以及协议版本
         byteBuf.markReaderIndex();
         int packageLength = byteBuf.readInt();
